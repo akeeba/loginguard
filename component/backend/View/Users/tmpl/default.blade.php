@@ -111,6 +111,7 @@ use FOF30\Utils\FEFHelper\Html as FEFHtml;
 <?php $i = 0; ?>
 <?php /** @var \Akeeba\LoginGuard\Admin\Model\Users $row */ ?>
 @foreach($this->items as $row)
+<?php $url = 'index.php?option=com_users&task=user.edit&id=' . (int)$row->id ?>
 <tr>
     <td>
         @jhtml('FEFHelper.browse.id', ++$i, $row->getId())
@@ -119,13 +120,19 @@ use FOF30\Utils\FEFHelper\Html as FEFHtml;
         {{{ $row->getId() }}}
     </td>
     <td>
-        {{{ $row->name }}}
+        <a href="{{ $url }}">
+            {{{ $row->name }}}
+        </a>
     </td>
     <td>
-        {{{ $row->username }}}
+        <a href="{{ $url }}">
+            {{{ $row->username }}}
+        </a>
     </td>
     <td>
-        {{{ $row->email }}}
+        <a href="{{ $url }}">
+            {{{ $row->email }}}
+        </a>
     </td>
     <td>
         @jhtml('FEFHelper.browse.published', $row->has2SV, $i, '', false)
