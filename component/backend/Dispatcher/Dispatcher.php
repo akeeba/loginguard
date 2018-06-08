@@ -148,7 +148,7 @@ class Dispatcher extends BaseDispatcher
 	{
 		$this->container->template->addCSS(
 			"media://{$this->container->componentName}/css/backend.min.css",
-			$this->container->mediaVersion, 'text/css', 'null',
+			$this->container->mediaVersion, 'text/css', null,
 			[
 				'relative'    => true,
 				'detectDebug' => true,

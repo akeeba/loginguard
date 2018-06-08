@@ -3,3 +3,83 @@
     min-width: 24px !important;
     min-height: 24px !important;
 }
+
+/** User display **/
+.fof-usersfield-avatar {
+    padding-right: 6pt;
+}
+
+.fof-usersfield-username {
+    font-weight: bold;
+}
+
+.fof-usersfield-id {
+    padding-left: 6pt;
+    font-size: smaller;
+    font-style: italic;
+}
+
+.fof-usersfield-id:before {
+    content: "["
+}
+
+.fof-usersfield-id:after {
+    content: "]"
+}
+
+.fof-usersfield-name {
+    display: block;
+}
+
+/** Joomla! 3 workaround for calendar fields */
+input#publish_up {
+    width: 90px;
+}
+input#publish_down {
+    width: 90px;
+}
+input#since {
+    width: 90px;
+}
+
+/**
+ * Joomla! 3.7 made success buttons fixed width.
+ */
+#toolbar .btn-success { width: auto !important; }
+
+/**
+ * Joomla! 3.7 broke span6 margins x_x
+ */
+div#akeeba-renderjoomla [class*="span"] { margin-left: 0; }
+
+div.joomla-version-3{ padding:0 }
+
+/** Filter bars */
+
+div.akeeba-filter-bar--right{
+    text-align: right;
+}
+
+div.akeeba-filter-element {
+    display: inline-block;
+    margin-right: 0.5em;
+}
+
+div.akeeba-filter-element button[class*=--icon-only]+button[class*=--icon-only] {
+    margin-left: 0;
+}
+
+div.akeeba-filter-element button[class*=--icon-only] [class*=akion-] {
+    margin: 0;
+    vertical-align: baseline;
+}
+
+div.akeeba-filter-bar select.custom-select{
+    min-width: 0;
+    max-width: 115px;
+}
+
+.joomla-version-3 .akeeba-filter-joomlacalendarfix {
+    vertical-align: middle;
+    padding-top: 0.35em;
+}
