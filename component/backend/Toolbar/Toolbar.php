@@ -45,6 +45,13 @@ class Toolbar extends BaseToolbar
 		JToolbarHelper::title(JText::_('COM_LOGINGUARD') . ': <small>' . JText::_('COM_LOGINGUARD_HEAD_WELCOME') . '</small>', 'loginguard');
 		JToolbarHelper::help('', false, 'https://github.com/akeeba/loginguard/wiki');
 		JToolbarHelper::preferences('com_loginguard');
+
+		if ($this->container->platform->authorise('loginguard.userlist', 'com_loginguard'))
+		{
+			$bar = \JToolBar::getInstance('toolbar');
+			$bar->appendButton('Link', 'user', JText::_('COM_LOGINGUARD_HEAD_USERS'), 'index.php?option=com_loginguard&view=Users');
+		}
+
 	}
 
 	/**

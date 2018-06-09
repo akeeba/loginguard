@@ -1,3 +1,9 @@
+# 3.0.1
+
+**New**
+
+* Users page to see whihc users have 2SV enabled or not
+
 # 3.0.0
 
 **Other changes**
