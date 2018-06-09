@@ -133,6 +133,19 @@ class Users extends DataModel
 			);
 		}
 
+		$filter_group = $this->getState('group', null, 'int');
+
+		if (!is_null($filter_group) && ($filter_group > 0))
+		{
+			$subQueryGroup = $db->getQuery(true)
+				->select([
+					$db->qn('user_id')
+				])->from($db->qn('#__user_usergroup_map'))
+				->where($db->qn('group_id') . ' = ' . (int) $filter_group);
+			$query->where($db->qn('id') . ' IN(' . $subQueryGroup . ')');
+		}
+
+
 		$order = $this->getState('filter_order', 'id', 'cmd');
 
 		if (!in_array($order, array_keys($this->knownFields)))

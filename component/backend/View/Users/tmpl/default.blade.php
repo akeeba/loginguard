@@ -67,6 +67,9 @@ use FOF30\Utils\FEFHelper\Html as FEFHtml;
         @searchfilter('email')
     </div>
     <div class="akeeba-filter-element akeeba-form-group">
+        {{ \FOF30\Utils\FEFHelper\BrowseView::genericSelect('group', \Akeeba\LoginGuard\Admin\Helper\Select::getGroupOptions(), $this->getModel()->getState('group', null, 'int'), ['list.none' => '&mdash; ' . JText::_('COM_LOGINGUARD_USER_FILTER_GROUP') . ' &mdash;', 'fof.autosubmit' => true]) }}
+    </div>
+    <div class="akeeba-filter-element akeeba-form-group">
         {{ \FOF30\Utils\FEFHelper\BrowseView::publishedFilter('has2SV', 'COM_LOGINGUARD_USER_FIELD_HAS2SV') }}
     </div>
 {{-- Filters above the table. --}}
