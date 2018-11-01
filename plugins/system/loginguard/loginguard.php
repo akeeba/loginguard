@@ -225,6 +225,12 @@ class PlgSystemLoginguard extends JPlugin
 		{
 			return;
 		}
+		// Joomla 3.9.0 : leave Joomla handle Privacy Rules, otherwise infinite loop
+		if ((version_compare(JVERSION, '3.8.99999', 'gt'))
+			&& (!$this->isUserConsented($user->get('id'))) )
+		{ // avoid infinite loop
+			return;
+		} 
 
 		list($isCLI, $isAdmin) = $this->isCliAdmin();
 
@@ -502,4 +508,19 @@ class PlgSystemLoginguard extends JPlugin
 		$url = 'index.php?option=com_loginguard&view=Methods';
 		$app->redirect($url, 307);
 	}
+        /* Joomla 3.9.0 : check if User Consented Privacy Rules */
+	private function isUserConsented($userId)
+	{
+            $db = JFactory::getDBo();
+		$query = $db->getQuery(true);
+		$query->select('COUNT(*)')
+			->from('#__privacy_consents')
+			->where('user_id = ' . (int) $userId)
+			->where('subject = ' . $db->quote('PLG_SYSTEM_PRIVACYCONSENT_SUBJECT'))
+			->where('state = 1');
+		$db->setQuery($query);
+
+		return (int) $db->loadResult() > 0;
+	}
+	
 }
