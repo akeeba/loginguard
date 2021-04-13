@@ -10,6 +10,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Table\Table;
 use Joomla\CMS\User\User;
 use Joomla\Event\Event;
 
@@ -111,10 +112,10 @@ abstract class LoginGuardHelperTfa
 		if (is_null(self::$allTFAs))
 		{
 			// Get all the plugin results
-			$temp = self::runPlugins('onLoginGuardTfaGetMethod', array());
+			$temp = self::runPlugins('onLoginGuardTfaGetMethod', []);
 
 			// Normalize the results
-			self::$allTFAs = array();
+			self::$allTFAs = [];
 
 			foreach ($temp as $method)
 			{
@@ -123,7 +124,7 @@ abstract class LoginGuardHelperTfa
 					continue;
 				}
 
-				$method = array_merge(array(
+				$method = array_merge([
 					// Internal code of this TFA method
 					'name'               => '',
 					// User-facing name for this TFA method
@@ -140,7 +141,7 @@ abstract class LoginGuardHelperTfa
 					'help_url'           => '',
 					// Allow authentication against all entries of this TFA method. Otherwise authentication takes place against a SPECIFIC entry at a time.
 					'allowEntryBatching' => false,
-				), $method);
+				], $method);
 
 				if (empty($method['name']))
 				{
@@ -200,5 +201,53 @@ abstract class LoginGuardHelperTfa
 
 		// I am a Super User trying to edit a non-superuser. That's allowed.
 		return true;
+	}
+
+	/**
+	 * Return all TFA records for a specific user
+	 *
+	 * @param   int|null  $user_id  User ID. NULL for currently logged in user.
+	 *
+	 * @return  LoginGuardTableTfa[]
+	 * @throws  Exception
+	 */
+	public static function getUserTfaRecords(?int $user_id): array
+	{
+		if (empty($user_id))
+		{
+			$user    = Factory::getApplication()->getIdentity() ?: Factory::getUser();
+			$user_id = $user->id ?: 0;
+		}
+
+		$db    = Factory::getDbo();
+		$query = $db->getQuery(true)
+			->select($db->quoteName('id'))
+			->from($db->quoteName('#__loginguard_tfa'))
+			->where($db->quoteName('user_id') . ' = ' . (int) $user_id);
+		try
+		{
+			$ids = $db->setQuery($query)->loadColumn() ?: [];
+		}
+		catch (Exception $e)
+		{
+			$ids = [];
+		}
+
+		if (empty($ids))
+		{
+			return [];
+		}
+
+		$records = array_map(function ($id) {
+			/** @var LoginGuardTableTfa $record */
+			$record = Table::getInstance('Tfa', 'LoginGuardTable');
+			$loaded = $record->load($id);
+
+			return $loaded ? $record : null;
+		}, $ids);
+
+		return array_filter($records, function ($record) {
+			return !is_null($record);
+		});
 	}
 }
