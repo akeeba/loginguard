@@ -51,6 +51,12 @@ class LoginGuardTableObserverDefault extends AbstractObserver
 			return;
 		}
 
+		// This does not apply to backup codes (otherwise we'd enter an infinite loop)
+		if ($this->table->method == 'backupcodes')
+		{
+			return;
+		}
+
 		// Get the number of records this user_id has
 		$numOldRecords = $this->getNumRecords($this->table->user_id);
 
