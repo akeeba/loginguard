@@ -18,6 +18,8 @@
 		"ext-json": "*",
 		"ext-simplexml": "*",
 		"ext-libxml": "*",
+		"ext-openssl": "*",
+		"ext-mbstring": "*",
 		"web-auth/webauthn-lib": "^3.0.0",
 		"laminas/laminas-diactoros": "^2.3"
 	}
