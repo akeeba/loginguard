@@ -14,6 +14,11 @@ use Joomla\CMS\Table\Table;
 use Joomla\CMS\Table\TableInterface;
 use Joomla\CMS\User\UserHelper;
 
+/**
+ * Automatically manage encryption of the TFA records' options
+ *
+ * @since 5.0.0
+ */
 class LoginGuardTableObserverEncrypt extends AbstractObserver
 {
 	private $columns = [];

@@ -5,6 +5,7 @@
  * @license   GNU General Public License version 3, or later
  */
 
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
@@ -13,6 +14,8 @@ use Joomla\CMS\Table\TableInterface;
 
 /**
  * Manage the default 2SV method and the automatic generation of backup codes.
+ *
+ * @since 5.0.0
  */
 class LoginGuardTableObserverDefault extends AbstractObserver
 {
@@ -57,16 +60,42 @@ class LoginGuardTableObserverDefault extends AbstractObserver
 			return;
 		}
 
-		// Get the number of records this user_id has
-		$numOldRecords = $this->getNumRecords($this->table->user_id);
+		$records = LoginGuardHelperTfa::getUserTfaRecords($this->table->user_id);
 
-		if ($numOldRecords > 0)
+		if ($this->table->id)
 		{
-			return;
+			// Existing record. Remove it from the list of records.
+			$records = array_filter($records, function ($rec)  {
+				return $rec->id != $this->table->id;
+			});
+		}
+		else
+		{
+			// New record. Update the created_on column
+			$this->table->created_on = Date::getInstance()->toSql();
 		}
 
-		$this->mustCreateBackupCodes = 1;
-		$this->table->default = 1;
+		// Do I need to mark this record as the default?
+		if ($this->table->default == 0)
+		{
+			$hasDefaultRecord = array_reduce($records, function ($carry, $record) {
+				return $carry || ($record->default == 1);
+			}, false);
+
+			if (!$hasDefaultRecord)
+			{
+				$this->table->default = 1;
+			}
+		}
+
+		// Get the number of records this user_id has, except the current record.
+		$numOldRecords = count($records);
+
+		if ($numOldRecords == 0)
+		{
+			$this->mustCreateBackupCodes = 1;
+			$this->table->default = 1;
+		}
 	}
 
 	public function onAfterStore(&$result)

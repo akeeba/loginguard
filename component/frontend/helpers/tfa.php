@@ -41,6 +41,7 @@ abstract class LoginGuardHelperTfa
 	 * @param   array   $data   A hash array of data sent to the plugins as part of the trigger
 	 *
 	 * @return  array  A simple array containing the results of the plugins triggered
+	 * @since   1.2.0
 	 */
 	public static function runPlugins(string $event, array $data = []): array
 	{
@@ -104,6 +105,7 @@ abstract class LoginGuardHelperTfa
 	 * Get a list of all of the TFA methods
 	 *
 	 * @return  array
+	 * @since   1.2.0
 	 */
 	public static function getTfaMethods(): array
 	{
@@ -163,6 +165,9 @@ abstract class LoginGuardHelperTfa
 	 * @param   User|null  $user  The user you want to know if we're allowed to edit
 	 *
 	 * @return  bool
+	 * @throws  Exception
+	 *
+	 * @since   1.2.0
 	 */
 	public static function canEditUser(?User $user = null): bool
 	{
@@ -210,6 +215,8 @@ abstract class LoginGuardHelperTfa
 	 *
 	 * @return  LoginGuardTableTfa[]
 	 * @throws  Exception
+	 *
+	 * @since   1.2.0
 	 */
 	public static function getUserTfaRecords(?int $user_id): array
 	{
