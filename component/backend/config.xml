@@ -4,7 +4,9 @@
   ~ @copyright Copyright (c)2016-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
   ~ @license   GNU General Public License version 3, or later
   -->
-<config addfieldpath="/administrator/components/com_loginguard/Field/Joomla">
+<config
+        addfieldpath="/administrator/components/com_loginguard/model/fields"
+>
 
     <fieldset name="captive"
               label="COM_LOGINGUARD_CONFIG_HEADER_CAPTIVE_LABEL"

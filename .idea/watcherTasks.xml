@@ -21,7 +21,7 @@
       <option name="workingDir" value="$FileDir$" />
       <envs />
     </TaskOptions>
-    <TaskOptions isEnabled="true">
+    <TaskOptions isEnabled="false">
       <option name="arguments" value="--compilation_level SIMPLE_OPTIMIZATIONS --js $FileName$ --js_output_file $FileNameWithoutExtension$.min.js --create_source_map $FileNameWithoutExtension$.map --source_map_format=V3 --output_wrapper &quot;%output% //# sourceMappingURL=$FileNameWithoutExtension$.map&quot;" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" />

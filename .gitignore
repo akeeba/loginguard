@@ -33,9 +33,7 @@
 
 ### Extension files to be excluded
 
-/component/frontend/views
 /component/backend/encrypt_service_key.php
-/component/backend/views
 /component/backend/vendor
 
 ### Release files

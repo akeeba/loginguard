@@ -5,84 +5,60 @@
  * @license   GNU General Public License version 3, or later
  */
 
-namespace Akeeba\LoginGuard\Site\Controller;
+// Prevent direct access
+defined('_JEXEC') or die;
 
-use Akeeba\LoginGuard\Site\Model\BackupCodes;
-use Akeeba\LoginGuard\Site\Model\Captive as CaptiveModel;
-use Akeeba\LoginGuard\Site\Model\RememberMe;
-use Exception;
-use FOF40\Container\Container;
-use FOF40\Controller\Controller;
-use FOF40\Controller\Mixin\PredefinedTaskList;
-use JLoader;
-use Joomla\CMS\Language\Text as JText;
-use Joomla\CMS\Router\Route as JRoute;
-use Joomla\CMS\Uri\Uri as JUri;
-use RuntimeException;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 
-// Protect from unauthorized access
-defined('_JEXEC') || die();
-
-/**
- * Controller for the captive login view
- *
- * @since       2.0.0
- */
-class Captive extends Controller
+class LoginGuardControllerCaptive extends BaseController
 {
-	use PredefinedTaskList;
-
-	/**
-	 * Constructor. Sets up the default task
-	 *
-	 * @param   Container  $container
-	 * @param   array      $config
-	 *
-	 * @since   2.0.0
-	 */
-	public function __construct(Container $container, array $config = [])
+	public function __construct(array $config = [])
 	{
-		if (!isset($config['default_task']))
-		{
-			$config['default_task'] = 'captive';
-		}
+		parent::__construct($config);
 
-		parent::__construct($container, $config);
-
-		$this->setPredefinedTaskList(['captive', 'validate']);
-		$this->cacheableTasks = [];
-		$this->userCaching = 2;
+		$this->registerDefaultTask('captive');
 	}
 
-	/**
-	 * Display the captive login page
-	 *
-	 * @since   2.0.0
-	 */
-	public function captive()
+	public function captive($cachable = false, $urlparams = false)
 	{
-		$user = $this->container->platform->getUser();
+		$app  = Factory::getApplication();
+		$user = $app->getIdentity() ?: Factory::getUser();
 
 		// Only allow logged in users
 		if ($user->guest)
 		{
-			throw new RuntimeException(JText::_('JERROR_ALERTNOAUTHOR'), 403);
+			throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
 		}
+
+		// Get the view object
+		$viewLayout = $this->input->get('layout', 'default', 'string');
+		$view       = $this->getView('captive', 'html', '', [
+			'base_path' => $this->basePath,
+			'layout'    => $viewLayout,
+		]);
+
+		$view->document = $app->getDocument();
 
 		// If we're already logged in go to the site's home page
-		if ($this->container->platform->getSessionVar('tfa_checked', 0, 'com_loginguard') == 1)
+		if ($app->getSession()->get('com_loginguard.tfa_checked', 0) == 1)
 		{
-			$url = JRoute::_('index.php?option=com_loginguard&view=Methods', false);
-			$this->setRedirect($url);
+			$url = Route::_('index.php?option=com_loginguard&task=methods.display', false);
 
-			return;
+			$this->setRedirect($url);
 		}
 
-		// kill all modules on the page
+		// Pass the model to the view
+		/** @var LoginGuardModelCaptive $model */
+		$model = $this->getModel('captive');
+		$view->setModel($model, true);
+
 		try
 		{
-			/** @var CaptiveModel $model */
-			$model = $this->getModel();
+			// kill all modules on the page
 			$model->killAllModules();
 		}
 		catch (Exception $e)
@@ -95,60 +71,74 @@ class Captive extends Controller
 		$model->setState('record_id', $record_id);
 
 		// Validate by Browser ID
-		$browserId = $this->getBrowserId();
-		/** @var RememberMe $rememberMeModel */
-		$rememberMeModel = $this->container->factory->model('RememberMe');
+		try
+		{
+			$browserId = $this->getBrowserId();
+		}
+		catch (Exception $e)
+		{
+			$browserId = '';
+		}
+
+		/** @var LoginGuardModelRememberme $rememberMeModel */
+		$rememberMeModel = $this->getModel('rememberme');
 
 		if (!is_null($browserId) && $rememberMeModel->setBrowserId($browserId)->hasValidCookie())
 		{
 			// Tell the plugins that we successfully applied 2SV – used by our User Actions Log plugin.
-			$this->container->platform->runPlugins('onComLoginguardCaptiveValidateSuccess', [
-				JText::_('COM_LOGINGUARD_LBL_METHOD_BROWSERID'),
+			LoginGuardHelperTfa::runPlugins('onComLoginguardCaptiveValidateSuccess', [
+				Text::_('COM_LOGINGUARD_LBL_METHOD_BROWSERID'),
 			]);
 
 			// Flag the user as fully logged in
-			$this->container->platform->setSessionVar('tfa_checked', 1, 'com_loginguard');
+			$app->getSession()->set('com_loginguard.tfa_checked', 1);
 
 			// Get the return URL stored by the plugin in the session
-			$return_url = $this->container->platform->getSessionVar('return_url', '', 'com_loginguard');
+			$return_url = $app->getSession()->get('com_loginguard.return_url', '');
 
 			// If the return URL is not set or not inside this site redirect to the site's front page
-			if (empty($return_url) || !JUri::isInternal($return_url))
+			if (empty($return_url) || !Uri::isInternal($return_url))
 			{
-				$return_url = JUri::base();
+				$return_url = Uri::base();
 			}
 
 			$this->setRedirect($return_url);
 
-			return;
+			return $this;
 		}
 
-		$this->display();
+		// Do not go through $this->display() because it overrides the model, nullifying the whole concept of MVC.
+		$view->display();
+
+		return $this;
 	}
+
 
 	/**
 	 * Validate the TFA code entered by the user
 	 *
-	 * @throws  Exception
-	 * @since   2.0.0
+	 * @param   bool   $cachable       Can this view be cached
+	 * @param   array  $urlparameters  An array of safe url parameters and their variable types, for valid values see
+	 *                                 {@link JFilterInput::clean()}.
 	 *
+	 * @return  self   The current JControllerLegacy object to support chaining.
 	 */
-	public function validate()
+	public function validate($cachable = false, $urlparameters = [])
 	{
-		$this->csrfProtection();
+		// CSRF Check
+		$token = JSession::getFormToken();
+		$value = $this->input->post->getInt($token, 0);
 
-		// Only allow logged in users
-		if ($this->container->platform->getUser()->guest)
+		if ($value != 1)
 		{
-			throw new RuntimeException(JText::_('JERROR_ALERTNOAUTHOR'), 403);
+			die(JText::_('JINVALID_TOKEN'));
 		}
 
 		// Get the TFA parameters from the request
-		$record_id  = $this->input->getInt('record_id', null);
-		$rememberMe = $this->input->getBool('rememberme', false);
-		$code       = $this->input->get('code', null, 'raw');
-		/** @var CaptiveModel $model */
-		$model = $this->getModel();
+		$record_id = $this->input->getInt('record_id', null);
+		$code      = $this->input->get('code', null, 'raw');
+		/** @var LoginGuardModelCaptive $model */
+		$model = $this->getModel('Captive', 'LoginGuardModel');
 
 		// Validate the TFA record
 		$model->setState('record_id', $record_id);
@@ -156,23 +146,26 @@ class Captive extends Controller
 
 		if (empty($record))
 		{
-			$this->container->platform->runPlugins('onComLoginguardCaptiveValidateInvalidMethod', []);
-
 			throw new RuntimeException(JText::_('COM_LOGINGUARD_ERR_INVALID_METHOD'), 500);
 		}
 
 		// Validate the code
-		$user = $this->container->platform->getUser();
+		$user = JFactory::getUser();
 
-		$results     = $this->container->platform->runPlugins('onLoginGuardTfaValidate', [$record, $user, $code]);
+		JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
+		$results     = LoginGuardHelperTfa::runPlugins('onLoginGuardTfaValidate', [$record, $user, $code]);
 		$isValidCode = false;
 
 		if ($record->method == 'backupcodes')
 		{
-			/** @var BackupCodes $codesModel */
-			$codesModel = $this->getModel('BackupCodes');
-			$results    = [$codesModel->isBackupCode($code, $user)];
+			if (!class_exists('LoginGuardModelBackupcodes'))
+			{
+				require_once JPATH_BASE . '/components/com_loginguard/models/backupcodes.php';
+			}
 
+			/** @var LoginGuardModelBackupcodes $codesModel */
+			$codesModel = JModelLegacy::getInstance('Backupcodes', 'LoginGuardModel');
+			$results    = [$codesModel->isBackupCode($code, $user)];
 			/**
 			 * This is required! Do not remove!
 			 *
@@ -206,45 +199,40 @@ class Captive extends Controller
 
 		if (!$isValidCode)
 		{
-			$this->container->platform->runPlugins('onComLoginguardCaptiveValidateFailed', [
-				$record->title,
-			]);
-
 			// The code is wrong. Display an error and go back.
-			$captiveURL = JRoute::_('index.php?option=com_loginguard&view=Captive&record_id=' . $record_id, false);
+			$captiveURL = JRoute::_('index.php?option=com_loginguard&view=captive&record_id=' . $record_id, false);
 			$message    = JText::_('COM_LOGINGUARD_ERR_INVALID_CODE');
 			$this->setRedirect($captiveURL, $message, 'error');
 
-			return;
+			return $this;
 		}
-
-		// Handle the Remember Me option
-		$browserId = $this->getBrowserId();
-
-		if ($rememberMe && !empty($browserId))
-		{
-			/** @var RememberMe $rememberModel */
-			$rememberModel = $this->container->factory->model('RememberMe');
-			$rememberModel
-				->setBrowserId($browserId)
-				->setUsername($user->username)
-				->setCookie();
-		}
-
-		// Run the plugins for the User Action Log plugin
-		$this->container->platform->runPlugins('onComLoginguardCaptiveValidateSuccess', [
-			$record->title,
-		]);
 
 		// Update the Last Used, UA and IP columns
 		JLoader::import('joomla.environment.browser');
-		$jNow = $this->container->platform->getDate();
+		$jNow    = JDate::getInstance();
+		$browser = JBrowser::getInstance();
+		$session = JFactory::getSession();
+		$ip      = $session->get('session.client.address');
+
+		if (empty($ip))
+		{
+			$ip = $_SERVER['REMOTE_ADDR'];
+		}
 
 		$record->last_used = $jNow->toSql();
+		$record->ua        = $browser->getAgentString();
+		$record->ip        = $ip;
+
+		if (!class_exists('LoginGuardModelMethod'))
+		{
+			JLoader::register('LoginGuardModelMethod', __DIR__ . '/../models/method.php');
+		}
+
+		$methodModel = new LoginGuardModelMethod();
 
 		try
 		{
-			$record->save();
+			$methodModel->saveRecord($record);
 		}
 		catch (Exception $e)
 		{
@@ -252,10 +240,11 @@ class Captive extends Controller
 		}
 
 		// Flag the user as fully logged in
-		$this->container->platform->setSessionVar('tfa_checked', 1, 'com_loginguard');
+		$session = JFactory::getSession();
+		$session->set('tfa_checked', 1, 'com_loginguard');
 
 		// Get the return URL stored by the plugin in the session
-		$return_url = $this->container->platform->getSessionVar('return_url', '', 'com_loginguard');
+		$return_url = $session->get('return_url', '', 'com_loginguard');
 
 		// If the return URL is not set or not inside this site redirect to the site's front page
 		if (empty($return_url) || !JUri::isInternal($return_url))
@@ -264,6 +253,8 @@ class Captive extends Controller
 		}
 
 		$this->setRedirect($return_url);
+
+		return $this;
 	}
 
 	/**
@@ -273,18 +264,23 @@ class Captive extends Controller
 	 * Otherwise we return whatever browser ID we currently have in the session.
 	 *
 	 * @return string|null
+	 * @throws Exception
 	 */
 	private function getBrowserId(): ?string
 	{
+		$app     = Factory::getApplication();
+		$session = $app->getSession();
+
 		/**
 		 * I will only accept a browser ID if it's POSTed with a valid anti-CSRF token and the session flag is set. This
 		 * gives me adequate assurances that there's no monkey business going on.
 		 */
 		try
 		{
-			$allowedFlag = $this->csrfProtection() &&
-				($this->input->getMethod() == 'POST') &&
-				$this->container->session->get('browserIdCodeLoaded', false, 'com_loginguard');
+			$this->checkToken();
+
+			$allowedFlag = ($this->input->getMethod() == 'POST') &&
+				$session->get('com_loginguard.browserIdCodeLoaded', false);
 		}
 		catch (Exception $e)
 		{
@@ -292,7 +288,7 @@ class Captive extends Controller
 		}
 
 		// Get the browser ID recorded in the session and in the request
-		$browserIdSession = $this->container->session->get('browserId', null, 'com_loginguard');
+		$browserIdSession = $session->get('com_loginguard.browserId', null);
 		$browserIdRequest = $this->input->post->getString('browserId', null);
 
 		// Nobody is trying to set a browser ID in the request. Return the browser ID we stored in the session.
@@ -320,9 +316,9 @@ class Captive extends Controller
 		}
 
 		// Reset the flag to prevent opportunities to override our browser fingerprinting
-		$this->container->session->set('browserIdCodeLoaded', false, 'com_loginguard');
+		$session->set('com_loginguard.browserIdCodeLoaded', false);
 		// Save the browser ID in the session
-		$this->container->session->set('browserId', $browserIdRequest, 'com_loginguard');
+		$session->set('com_loginguard.browserId', $browserIdRequest);
 
 		// Finally, return the browser ID as requested
 		return $browserIdRequest;

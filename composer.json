@@ -1,22 +1,24 @@
 {
-  "name": "akeeba/loginguard",
-  "description": "Akeeba LoginGuard – Two Step Verification for Joomla!",
-  "minimum-stability": "stable",
-  "license": "GPL-3.0-or-later",
-  "authors": [
-    {
-      "name": "Nicholas K. Dionysopoulos",
-      "homepage": "https://www.akeeba.com",
-      "role": "Lead Developer"
-    }
-  ],
-  "config": {
-    "vendor-dir": "component/backend/vendor"
-  },
-  "require": {
-    "php": ">=7.2 <8.1",
-    "ext-json": "*",
-    "web-auth/webauthn-lib": "^3.0.0",
-    "laminas/laminas-diactoros": "^2.3"
-  }
+	"name": "akeeba/loginguard",
+	"description": "Akeeba LoginGuard – Two Step Verification for Joomla!",
+	"minimum-stability": "stable",
+	"license": "GPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Nicholas K. Dionysopoulos",
+			"homepage": "https://www.akeeba.com",
+			"role": "Lead Developer"
+		}
+	],
+	"config": {
+		"vendor-dir": "component/backend/vendor"
+	},
+	"require": {
+		"php": ">=7.2 <8.1",
+		"ext-json": "*",
+		"ext-simplexml": "*",
+		"ext-libxml": "*",
+		"web-auth/webauthn-lib": "^3.0.0",
+		"laminas/laminas-diactoros": "^2.3"
+	}
 }
