@@ -5,8 +5,8 @@
   ~ @license   GNU General Public License version 3, or later
   -->
 
-<extension version="3.9.0" type="plugin" group="system" method="upgrade">
-	<name>PLG_SYSTEM_LOGINGUARD</name>
+<extension version="3.9.0" type="plugin" group="user" method="upgrade">
+	<name>PLG_USER_LOGINGUARD</name>
 	<version>4.0.0</version>
 	<creationDate>2021-03-02</creationDate>
 
@@ -17,27 +17,29 @@
 	<copyright>Copyright (c)2016-2021 Akeeba Ltd</copyright>
 	<license>GNU GPL v3 or later</license>
 
-	<description>PLG_SYSTEM_LOGINGUARD_DESCRIPTION</description>
+	<description>PLG_USER_LOGINGUARD_DESCRIPTION</description>
 
 	<files>
+		<folder>fields</folder>
+		<folder>loginguard</folder>
+
 		<filename plugin="loginguard">loginguard.php</filename>
 		<filename>.htaccess</filename>
 		<filename>web.config</filename>
 	</files>
-
 	<languages folder="language">
-		<language tag="en-GB">en-GB/en-GB.plg_system_loginguard.ini</language>
-		<language tag="en-GB">en-GB/en-GB.plg_system_loginguard.sys.ini</language>
+		<language tag="en-GB">en-GB/en-GB.plg_user_loginguard.ini</language>
+		<language tag="en-GB">en-GB/en-GB.plg_user_loginguard.sys.ini</language>
 	</languages>
 
-	<config addfieldpath="/administrator/components/com_loginguard/Field/Joomla">
+	<config addfieldpath="/administrator/components/com_loginguard/model/fields">
 		<fields name="params">
 			<fieldset name="basic">
 				<field
-						name="2svonsilent"
+						name="redirectonlogin"
 						type="fancyradio"
-						label="PLG_SYSTEM_LOGINGUARD_CONFIG_2SVONSILENT_LABEL"
-						description="PLG_SYSTEM_LOGINGUARD_CONFIG_2SVONSILENT_DESC"
+						label="PLG_USER_LOGINGUARD_CONFIG_REDIRECTONLOGIN_LABEL"
+						description="PLG_USER_LOGINGUARD_CONFIG_REDIRECTONLOGIN_DESC"
 						default="1"
 						class="btn-group"
 				>
@@ -46,11 +48,11 @@
 				</field>
 
 				<field
-						name="silentresponses"
+						name="redirecturl"
 						type="text"
-						label="PLG_USER_LOGINGUARD_CONFIG_SILENTRESPONSES_LABEL"
-						description="PLG_USER_LOGINGUARD_CONFIG_SILENTRESPONSES_DESC"
-						default="cookie, sociallogin, passwordless"
+						label="PLG_USER_LOGINGUARD_CONFIG_REDIRECTURL_LABEL"
+						description="PLG_USER_LOGINGUARD_CONFIG_REDIRECTURL_DESC"
+						default=""
 				/>
 			</fieldset>
 		</fields>

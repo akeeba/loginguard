@@ -5,8 +5,6 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Site\Helper\Tfa;
-use FOF40\Container\Container;
 use Joomla\CMS\Application\CliApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
@@ -31,14 +29,6 @@ class PlgSystemLoginguard extends CMSPlugin
 	 * @var   bool
 	 */
 	public $enabled = true;
-
-	/**
-	 * The component's container
-	 *
-	 * @var   Container
-	 * @since 2.0.0
-	 */
-	private $container = null;
 
 	/**
 	 * User groups for which Two Step Verification is never applied
@@ -68,50 +58,39 @@ class PlgSystemLoginguard extends CMSPlugin
 	{
 		parent::__construct($subject, $config);
 
-		// Load FOF
-		if (!defined('FOF40_INCLUDED') && !@include_once(JPATH_LIBRARIES . '/fof40/include.php'))
+		// Make sure Akeeba LoginGuard is installed
+		if (
+			!file_exists(JPATH_ADMINISTRATOR . '/components/com_loginguard') ||
+			!ComponentHelper::isInstalled('com_loginguard') ||
+			!ComponentHelper::isEnabled('com_loginguard')
+		)
 		{
 			$this->enabled = false;
 
 			return;
 		}
 
-		// Make sure Akeeba LoginGuard is installed
-		try
-		{
-			if (
-				!file_exists(JPATH_ADMINISTRATOR . '/components/com_loginguard') ||
-				!ComponentHelper::isInstalled('com_loginguard') ||
-				!ComponentHelper::isEnabled('com_loginguard')
-			)
-			{
-				throw new RuntimeException('Akeeba LoginGuard is not installed');
-			}
-
-			$this->container = Container::getInstance('com_loginguard');
-		}
-		catch (Exception $e)
-		{
-			$this->enabled = false;
-		}
-
 		// PHP version check
 		$this->enabled = version_compare(PHP_VERSION, '7.2.0', 'ge');
 
+		$cParams = ComponentHelper::getParams('com_loginguard');
+
 		// Parse settings
-		$this->neverTSVUserGroups = $this->container->params->get('neverTSVUserGroups', []);
+		$this->neverTSVUserGroups = $cParams->get('neverTSVUserGroups', []);
 
 		if (!is_array($this->neverTSVUserGroups))
 		{
 			$this->neverTSVUserGroups = [];
 		}
 
-		$this->forceTSVUserGroups = $this->container->params->get('forceTSVUserGroups', []);
+		$this->forceTSVUserGroups = $cParams->get('forceTSVUserGroups', []);
 
 		if (!is_array($this->forceTSVUserGroups))
 		{
 			$this->forceTSVUserGroups = [];
 		}
+
+		JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
 	}
 
 	/**
@@ -184,6 +163,8 @@ class PlgSystemLoginguard extends CMSPlugin
 			return;
 		}
 
+		$session = $app->getSession();
+
 		// We only kick in when the user has actually set up TFA or must definitely enable TFA.
 		$needsTFA     = $this->needsTFA($user);
 		$disabledTSV  = $this->disabledTSV($user);
@@ -192,36 +173,36 @@ class PlgSystemLoginguard extends CMSPlugin
 		if ($needsTFA && !$disabledTSV)
 		{
 			// Save the current URL, but only if we haven't saved a URL or if the saved URL is NOT internal to the site.
-			$return_url = $this->container->platform->getSessionVar('return_url', '', 'com_loginguard');
+			$return_url = $session->get('com_loginguard.return_url', '');
 
 			if (empty($return_url) || !Uri::isInternal($return_url))
 			{
-				$this->container->platform->setSessionVar('return_url', Uri::getInstance()->toString([
+				$session->set('com_loginguard.return_url', Uri::getInstance()->toString([
 					'scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'fragment',
-				]), 'com_loginguard');
+				]));
 			}
 
 			// Redirect
-			$url = Route::_('index.php?option=com_loginguard&view=Captive', false);
+			$url = Route::_('index.php?option=com_loginguard&view=captive', false);
 			$app->redirect($url, 307);
 
 			return;
 		}
 
 		// If we're here someone just logged in but does not have TFA set up. Just flag him as logged in and continue.
-		$this->container->platform->setSessionVar('tfa_checked', 1, 'com_loginguard');
+		$session->set('com_loginguard.tfa_checked', 1);
 
 		// If we don't have TFA set up yet AND the user plugin had set up a redirection we will honour it
-		$redirectionUrl = $this->container->platform->getSessionVar('postloginredirect', null, 'com_loginguard');
+		$redirectionUrl = $session->get('com_loginguard.postloginredirect', null);
 
 		// If the user is in a group that requires TFA we will redirect them to the setup page
 		if (!$needsTFA && $mandatoryTSV)
 		{
 			// First unset the flag to make sure the redirection will apply until they conform to the mandatory TFA
-			$this->container->platform->setSessionVar('tfa_checked', 0, 'com_loginguard');
+			$session->set('com_loginguard.tfa_checked', 0);
 
 			// Now set a flag which forces rechecking TSV for this user
-			$this->container->platform->setSessionVar('recheck_mandatory_tsv', 1, 'com_loginguard');
+			$session->set('com_loginguard.recheck_mandatory_tsv', 1);
 
 			// Then redirect them to the setup page
 			$this->redirectToTSVSetup();
@@ -229,7 +210,7 @@ class PlgSystemLoginguard extends CMSPlugin
 
 		if (!$needsTFA && $redirectionUrl && !$disabledTSV)
 		{
-			$this->container->platform->setSessionVar('postloginredirect', null, 'com_loginguard');
+			$session->set('com_loginguard.postloginredirect', null);
 
 			Factory::getApplication()->redirect($redirectionUrl);
 		}
@@ -244,9 +225,20 @@ class PlgSystemLoginguard extends CMSPlugin
 	 */
 	public function onUserAfterLogin($options)
 	{
+		try
+		{
+			$app = Factory::getApplication();
+		}
+		catch (Exception $e)
+		{
+			return;
+		}
+
+		$session = $app->getSession();
+
 		// Always reset the browser ID to avoid session poisoning attacks
-		$this->container->platform->setSessionVar('browserId', null, 'com_loginguard');
-		$this->container->platform->setSessionVar('browserIdCodeLoaded', false, 'com_loginguard');
+		$session->set('com_loginguard.browserId', null);
+		$session->set('com_loginguard.browserIdCodeLoaded', false);
 
 		// Should I show 2SV even on silent logins? Default: 1 (yes, show)
 		$switch = $this->params->get('2svonsilent', 1);
@@ -272,7 +264,7 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		// Set the flag indicating that 2SV is already checked.
-		$this->container->platform->setSessionVar('tfa_checked', 1, 'com_loginguard');
+		$session->set('com_loginguard.tfa_checked', 1);
 	}
 
 	/**
@@ -320,20 +312,17 @@ class PlgSystemLoginguard extends CMSPlugin
 	 */
 	private function needsTFA(User $user)
 	{
-		/** @var \Akeeba\LoginGuard\Site\Model\Tfa $tfaModel */
-		$tfaModel = $this->container->factory->model('Tfa')->tmpInstance();
-
 		// Get the user's TFA records
-		$records = $tfaModel->user_id($user->id)->get(true);
+		$records = LoginGuardHelperTfa::getUserTfaRecords($user->id);
 
 		// No TFA methods? Then we obviously don't need to display a captive login page.
-		if ($records->count() < 1)
+		if (count($records) < 1)
 		{
 			return false;
 		}
 
 		// Let's get a list of all currently active TFA methods
-		$tfaMethods = Tfa::getTfaMethods();
+		$tfaMethods = LoginGuardHelperTfa::getTfaMethods();
 
 		// If not TFA method is active we can't really display a captive login page.
 		if (empty($tfaMethods))
@@ -423,7 +412,7 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		// Otherwise redirect to the LoginGuard TSV setup page after enqueueing a message
-		$url = 'index.php?option=com_loginguard&view=Methods';
+		$url = Uri::base() . 'index.php?option=com_loginguard&view=Methods';
 		$app->redirect($url, 307);
 	}
 
@@ -444,6 +433,17 @@ class PlgSystemLoginguard extends CMSPlugin
 			return false;
 		}
 
+		try
+		{
+			$app = Factory::getApplication();
+		}
+		catch (Exception $e)
+		{
+			return false;
+		}
+
+		$session = $app->getSession();
+
 		/**
 		 * We only kick in if the session flag is not set AND the user is not flagged for monitoring of their TSV status
 		 *
@@ -451,8 +451,8 @@ class PlgSystemLoginguard extends CMSPlugin
 		 * TSV enabled we have the recheck flag. This prevents the user from enabling and immediately disabling TSV,
 		 * circumventing the requirement for TSV.
 		 */
-		$tfaChecked = $this->container->platform->getSessionVar('tfa_checked', 0, 'com_loginguard');
-		$tfaRecheck = $this->container->platform->getSessionVar('recheck_mandatory_tsv', 0, 'com_loginguard');
+		$tfaChecked = $session->get('com_loginguard.tfa_checked', 0) != 0;
+		$tfaRecheck = $session->get('com_loginguard.recheck_mandatory_tsv', 0) != 0;
 
 		if ($tfaChecked && !$tfaRecheck)
 		{
@@ -470,7 +470,7 @@ class PlgSystemLoginguard extends CMSPlugin
 				$app->loadIdentity();
 			}
 
-			$user = $app->getIdentity();
+			$user = $app->getIdentity() ?: Factory::getUser();
 		}
 		catch (\Exception $e)
 		{
@@ -622,7 +622,7 @@ class PlgSystemLoginguard extends CMSPlugin
 	private function snuffJoomlaPrivacyConsent()
 	{
 		/**
-		 * The privacy suite is not ported to Joomla! 4 yet.
+		 * TODO Handle the case of Joomla 4...
 		 */
 		if (version_compare(JVERSION, '3.9999.9999', 'ge'))
 		{

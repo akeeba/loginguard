@@ -5,13 +5,12 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Site\Helper\Tfa;
 use Akeeba\LoginGuard\Site\Model\RememberMe;
-use FOF40\Container\Container;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Table\Menu;
@@ -32,14 +31,6 @@ defined('_JEXEC') || die;
 class plgUserLoginguard extends CMSPlugin
 {
 	/**
-	 * The component's container object
-	 *
-	 * @var   Container
-	 * @since 2.0.0
-	 */
-	private $container = null;
-
-	/**
 	 * Should this plugin do anything?
 	 *
 	 * @var   bool
@@ -59,40 +50,24 @@ class plgUserLoginguard extends CMSPlugin
 	{
 		parent::__construct($subject, $config);
 
-		// Load FOF
-		if (!defined('FOF40_INCLUDED') && !@include_once(JPATH_LIBRARIES . '/fof40/include.php'))
+		// Make sure Akeeba LoginGuard is installed
+		if (
+			!file_exists(JPATH_ADMINISTRATOR . '/components/com_loginguard') ||
+			!ComponentHelper::isInstalled('com_loginguard') ||
+			!ComponentHelper::isEnabled('com_loginguard')
+		)
 		{
 			$this->enabled = false;
 
 			return;
 		}
 
-		// Make sure Akeeba LoginGuard is installed
-		try
-		{
-			if (
-				!file_exists(JPATH_ADMINISTRATOR . '/components/com_loginguard') ||
-				!ComponentHelper::isInstalled('com_loginguard') ||
-				!ComponentHelper::isEnabled('com_loginguard')
-			)
-			{
-				throw new RuntimeException('Akeeba LoginGuard is not installed');
-			}
-
-			$this->container = Container::getInstance('com_loginguard');
-		}
-		catch (Exception $e)
-		{
-			$this->enabled = false;
-		}
-
-		// Get a reference to the component's container
-		$this->container = Container::getInstance('com_loginguard');
-
 		// PHP version check
 		$this->enabled = version_compare(PHP_VERSION, '7.2.0', 'ge');
 
 		$this->loadLanguage();
+
+		JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
 	}
 
 	/**
@@ -125,7 +100,7 @@ class plgUserLoginguard extends CMSPlugin
 			return true;
 		}
 
-		$layout = Factory::getApplication()->input->getCmd('layout', null);
+		$layout = Factory::getApplication()->input->getCmd('layout', 'default');
 
 		/**
 		 * Joomla is kinda brain-dead. When we have a menu item to the Edit Profile page it does not push the layout
@@ -148,7 +123,16 @@ class plgUserLoginguard extends CMSPlugin
 			}
 		}
 
-		if (!$this->container->platform->isBackend() && !in_array($layout, ['edit', 'default']))
+		try
+		{
+			$app = Factory::getApplication();
+		}
+		catch (Exception $e)
+		{
+			return true;
+		}
+
+		if (!$app->isClient('administrator') && !in_array($layout, ['edit', 'default']))
 		{
 			return true;
 		}
@@ -178,7 +162,7 @@ class plgUserLoginguard extends CMSPlugin
 		}
 
 		// Make sure I am either editing myself OR I am a Super User AND I'm not editing another Super User
-		if (!Tfa::canEditUser($user))
+		if (!LoginGuardHelperTfa::canEditUser($user))
 		{
 			return true;
 		}
@@ -189,9 +173,7 @@ class plgUserLoginguard extends CMSPlugin
 		// Special handling for profile overview page
 		if ($layout == 'default')
 		{
-			/** @var \Akeeba\LoginGuard\Site\Model\Tfa $tfaModel */
-			$tfaModel   = $this->container->factory->model('Tfa')->tmpInstance();
-			$tfaMethods = $tfaModel->user_id($id)->get(true);
+			$tfaMethods = LoginGuardHelperTfa::getUserTfaRecords($id);
 
 			/**
 			 * We cannot pass a boolean or integer; if it's false/0 Joomla! will display "No information entered". We
@@ -199,7 +181,7 @@ class plgUserLoginguard extends CMSPlugin
 			 * use such a field. So all I can do is pass raw text. Um, whatever.
 			 */
 			$data->loginguard = [
-				'hastfa' => ($tfaMethods->count() > 0) ? Text::_('PLG_USER_LOGINGUARD_FIELD_HASTFA_ENABLED') : Text::_('PLG_USER_LOGINGUARD_FIELD_HASTFA_DISABLED'),
+				'hastfa' => (count($tfaMethods) > 0) ? Text::_('PLG_USER_LOGINGUARD_FIELD_HASTFA_ENABLED') : Text::_('PLG_USER_LOGINGUARD_FIELD_HASTFA_DISABLED'),
 			];
 
 			$form->loadFile('list', false);
@@ -284,7 +266,7 @@ class plgUserLoginguard extends CMSPlugin
 	public function onUserAfterLogout(?array $options): bool
 	{
 		// Is the Remember Me feature enabled?
-		$allowRememberMe = $this->container->params->get('allow_rememberme', 1);
+		$allowRememberMe = ComponentHelper::getParams('com_loginguard')->get('allow_rememberme', 1);
 
 		if ($allowRememberMe)
 		{
@@ -305,8 +287,9 @@ class plgUserLoginguard extends CMSPlugin
 		}
 
 		// Finally, remove the Remember Me cookie
+		BaseDatabaseModel::addIncludePath(JPATH_ROOT . '/components/com_loginguard/models', 'LoginGuardModel');
 		/** @var RememberMe $rememberModel */
-		$rememberModel = $this->container->factory->model('RememberMe');
+		$rememberModel = BaseDatabaseModel::getInstance('Rememberme', 'LoginGuardModel');
 		$rememberModel->setUsername($userName)->removeCookie();
 
 		return true;
@@ -389,18 +372,16 @@ class plgUserLoginguard extends CMSPlugin
 	private function needsCaptivePage(User $user, $responseType = null)
 	{
 		// Get the user's 2SV records
-		/** @var \Akeeba\LoginGuard\Site\Model\Tfa $tfaModel */
-		$tfaModel = $this->container->factory->model('Tfa')->tmpInstance();
-		$records  = $tfaModel->user_id($user->id)->get(true);
+		$records = LoginGuardHelperTfa::getUserTfaRecords($user->id);
 
 		// No 2SV methods? Then we obviously don't need to display a captive login page.
-		if ($records->count() < 1)
+		if (count($records) < 1)
 		{
 			return false;
 		}
 
 		// Let's get a list of all currently active 2SV methods
-		$tfaMethods = Tfa::getTfaMethods();
+		$tfaMethods = LoginGuardHelperTfa::getTfaMethods();
 
 		// If not 2SV method is active we can't really display a captive login page.
 		if (empty($tfaMethods))
