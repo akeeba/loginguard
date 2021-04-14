@@ -124,7 +124,7 @@ class LoginGuardViewCaptive extends BaseHtmlView
 		if (empty($this->record))
 		{
 			// Default to the first record
-			$this->record = $this->records[0];
+			$this->record = reset($this->records);
 
 			// If we have multiple records try to make this record the default
 			if (count($this->records) > 1)

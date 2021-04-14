@@ -72,9 +72,10 @@ class LoginGuardViewMethods extends HtmlViewAlias
 	 */
 	function display($tpl = null)
 	{
+		$app = Factory::getApplication();
+
 		if (empty($this->user))
 		{
-			$app        = Factory::getApplication();
 			$this->user = $app->getIdentity() ?: Factory::getUser();
 		}
 
@@ -120,7 +121,7 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		}
 
 		/** @var LoginGuardModelBackupcodes $model */
-		$model = BaseDatabaseModel::getInstance('Backupcodes', 'LoginGuardModel');
+		$model       = BaseDatabaseModel::getInstance('Backupcodes', 'LoginGuardModel');
 		$backupCodes = $model->getBackupCodes($this->user);
 
 		if ($activeRecords && empty($backupCodes))

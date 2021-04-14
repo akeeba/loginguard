@@ -1,0 +1,92 @@
+/*!
+ * @package   AkeebaLoginGuard
+ * @copyright Copyright (c)2016-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+ */
+
+.loginguard-methods-list-method {
+    display: block;
+    width: 50%;
+    min-width: 300px;
+    max-width: 500px;
+    margin: auto;
+    padding: 0.25em 0.25em 0.25em 0.75em;
+    border: thin solid #cccccc;
+    background: #fafafa;
+}
+
+.loginguard-methods-list-method-default {
+    border-left: .5em solid navy;
+    padding-left: .25em;
+}
+
+.loginguard-methods-list-method-image {
+    width: 113px;
+    height: 45px;
+    z-index: 10;
+    margin: 5px;
+}
+
+.loginguard-methods-list-method-title {
+    font-size: larger;
+    margin-left: 125px;
+}
+
+.loginguard-methods-list-method-title span.hasTooltip {
+    float: right;
+    right: 5px;
+}
+
+.loginguard-methods-list-method-records-container
+{
+    margin-left: 125px;
+}
+
+.loginguard-methods-list-method-record
+{
+    min-height: 1.75em;
+}
+
+.loginguard-methods-list-method-record-edit,
+.loginguard-methods-list-method-record-delete
+{
+    margin: -15px;
+}
+
+.loginguard-methods-list-method-record-title-container
+{
+    font-size: larger;
+    padding: 0em 0 0.5em 0;
+    color: black;
+}
+
+.loginguard-methods-list-method-record-lastused
+{
+    color: #7e7e7e;
+}
+
+.loginguard-methods-list-method-record-lastused div
+{
+    padding: 0;
+}
+
+.loginguard-methods-list-method-record-lastused-date
+{
+    display: block;
+}
+
+.loginguard-methods-list-method-addnew-container
+{
+    padding: 1em 0;
+}
+
+div#loginguard-methods-reset-container
+{
+    clear: both;
+    margin-top: 1em;
+}
+
+#jform_loginguard_loginguard-lbl
+{
+    display: none;
+}

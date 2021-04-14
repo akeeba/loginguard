@@ -33,8 +33,9 @@
 
 ### Extension files to be excluded
 
-/component/backend/encrypt_service_key.php
 /component/backend/vendor
+/component/backend/encrypt_service_key.php
+/component/backend/loginguard.xml
 
 ### Release files
 

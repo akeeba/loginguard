@@ -8,10 +8,12 @@
 // Prevent direct access
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 
 class LoginGuardControllerCaptive extends BaseController
@@ -126,13 +128,7 @@ class LoginGuardControllerCaptive extends BaseController
 	public function validate($cachable = false, $urlparameters = [])
 	{
 		// CSRF Check
-		$token = JSession::getFormToken();
-		$value = $this->input->post->getInt($token, 0);
-
-		if ($value != 1)
-		{
-			die(JText::_('JINVALID_TOKEN'));
-		}
+		$this->checkToken();
 
 		// Get the TFA parameters from the request
 		$record_id = $this->input->getInt('record_id', null);
@@ -146,7 +142,7 @@ class LoginGuardControllerCaptive extends BaseController
 
 		if (empty($record))
 		{
-			throw new RuntimeException(JText::_('COM_LOGINGUARD_ERR_INVALID_METHOD'), 500);
+			throw new RuntimeException(Text::_('COM_LOGINGUARD_ERR_INVALID_METHOD'), 500);
 		}
 
 		// Validate the code
@@ -169,17 +165,17 @@ class LoginGuardControllerCaptive extends BaseController
 			/**
 			 * This is required! Do not remove!
 			 *
-			 * There is a saveRecord() call below. It saves the in-memory TFA record to the database. That includes the options
-			 * key which contains the configuration of the method. For backup codes, these are the actual codes you can use.
-			 * When we check for a backup code validity we also "burn" it, i.e. we remove it from the options table and save
-			 * that to the database. However, this DOES NOT update the $record here. Therefore the call to saveRecord() would
-			 * overwrite the database contents with a record that _includes_ the backup code we had just burned. As a result the
-			 * single use backup codes end up being multiple use.
+			 * There is a store() call below. It saves the in-memory TFA record to the database. That includes the
+			 * options key which contains the configuration of the method. For backup codes, these are the actual codes
+			 * you can use. When we check for a backup code validity we also "burn" it, i.e. we remove it from the
+			 * options table and save that to the database. However, this DOES NOT update the $record here. Therefore
+			 * the call to saveRecord() would overwrite the database contents with a record that _includes_ the backup
+			 * code we had just burned. As a result the single use backup codes end up being multiple use.
 			 *
-			 * By doing a getRecord() here, right after we have "burned" any correct backup codes, we resolve this issue. The
-			 * loaded record will reflect the database contents where the options DO NOT include the code we just used.
-			 * Therefore the call to saveRecord() will result in the correct database state, i.e. the used backup code being
-			 * removed.
+			 * By doing a getRecord() here, right after we have "burned" any correct backup codes, we resolve this
+			 * issue. The loaded record will reflect the database contents where the options DO NOT include the code we
+			 * just used. Therefore the call to store() will result in the correct database state, i.e. the used backup
+			 * code being removed.
 			 */
 			$record = $model->getRecord();
 		}
@@ -200,8 +196,8 @@ class LoginGuardControllerCaptive extends BaseController
 		if (!$isValidCode)
 		{
 			// The code is wrong. Display an error and go back.
-			$captiveURL = JRoute::_('index.php?option=com_loginguard&view=captive&record_id=' . $record_id, false);
-			$message    = JText::_('COM_LOGINGUARD_ERR_INVALID_CODE');
+			$captiveURL = Route::_('index.php?option=com_loginguard&view=captive&record_id=' . $record_id, false);
+			$message    = Text::_('COM_LOGINGUARD_ERR_INVALID_CODE');
 			$this->setRedirect($captiveURL, $message, 'error');
 
 			return $this;
@@ -209,47 +205,28 @@ class LoginGuardControllerCaptive extends BaseController
 
 		// Update the Last Used, UA and IP columns
 		JLoader::import('joomla.environment.browser');
-		$jNow    = JDate::getInstance();
-		$browser = JBrowser::getInstance();
-		$session = JFactory::getSession();
-		$ip      = $session->get('session.client.address');
-
-		if (empty($ip))
-		{
-			$ip = $_SERVER['REMOTE_ADDR'];
-		}
+		$jNow = Date::getInstance();
 
 		$record->last_used = $jNow->toSql();
-		$record->ua        = $browser->getAgentString();
-		$record->ip        = $ip;
 
 		if (!class_exists('LoginGuardModelMethod'))
 		{
 			JLoader::register('LoginGuardModelMethod', __DIR__ . '/../models/method.php');
 		}
 
-		$methodModel = new LoginGuardModelMethod();
-
-		try
-		{
-			$methodModel->saveRecord($record);
-		}
-		catch (Exception $e)
-		{
-			// We don't really care if the timestamp can't be saved to the database
-		}
+		$record->store();
 
 		// Flag the user as fully logged in
-		$session = JFactory::getSession();
-		$session->set('tfa_checked', 1, 'com_loginguard');
+		$session = Factory::getApplication()->getSession();
+		$session->set('com_loginguard.tfa_checked', 1);
 
 		// Get the return URL stored by the plugin in the session
-		$return_url = $session->get('return_url', '', 'com_loginguard');
+		$return_url = $session->get('com_loginguard.return_url', '');
 
 		// If the return URL is not set or not inside this site redirect to the site's front page
-		if (empty($return_url) || !JUri::isInternal($return_url))
+		if (empty($return_url) || !Uri::isInternal($return_url))
 		{
-			$return_url = JUri::base();
+			$return_url = Uri::base();
 		}
 
 		$this->setRedirect($return_url);
@@ -277,14 +254,19 @@ class LoginGuardControllerCaptive extends BaseController
 		 */
 		try
 		{
-			$this->checkToken();
-
 			$allowedFlag = ($this->input->getMethod() == 'POST') &&
 				$session->get('com_loginguard.browserIdCodeLoaded', false);
 		}
 		catch (Exception $e)
 		{
 			$allowedFlag = false;
+		}
+
+		if ($allowedFlag)
+		{
+			// IMPORTANT: DO NOT USE checkToken() — IT CAUSES AN INFINITE REDIRECTION!
+			$token       = Session::getFormToken();
+			$allowedFlag = $app->input->post->getInt($token, 0) == 1;
 		}
 
 		// Get the browser ID recorded in the session and in the request

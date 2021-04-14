@@ -19,8 +19,20 @@ use Joomla\CMS\User\UserHelper;
  *
  * @since 5.0.0
  */
-class LoginGuardTableObserverEncrypt extends AbstractObserver
+class LoginGuardTableObserverEncrypt
 {
+	/**
+	 * The observed table
+	 *
+	 * @var    Table
+	 */
+	protected $table;
+
+	/**
+	 * The columns to encrypt / decrypt automatically
+	 *
+	 * @var array
+	 */
 	private $columns = [];
 
 	/**
@@ -69,50 +81,42 @@ class LoginGuardTableObserverEncrypt extends AbstractObserver
 	 */
 	private $key = '';
 
-	public static function createObserver(JObservableInterface $observableObject, $params = [])
+	public function __construct(Table $table, array $params = [])
 	{
-		if (!($observableObject instanceof TableInterface))
-		{
-			return null;
-		}
-
-		$observer = new self($observableObject);
+		$this->table = $table;
 
 		if (isset($params['method']))
 		{
-			$observer->setMethod($params['method']);
+			$this->setMethod($params['method']);
 		}
 
 		if (isset($params['componentName']))
 		{
-			$observer->setComponentName($params['componentName']);
+			$this->setComponentName($params['componentName']);
 		}
 		else
 		{
-			/** @var Table $observableObject */
-			$name = str_replace('#__', '', $observableObject->getTableName());
+			$name = str_replace('#__', '', $table->getTableName());
 			[$component, $tableType] = explode('_', $name, 2);
-			$observer->setComponentName('com_' . strtolower($component));
+			$this->setComponentName('com_' . strtolower($component));
 		}
 
 		if (isset($params['password']))
 		{
-			$observer->setPassword($params['password']);
+			$this->setPassword($params['password']);
 		}
 		else
 		{
-			$observer->setUpPasswordFromKeyFile();
+			$this->setUpPasswordFromKeyFile();
 		}
 
 		if (isset($params['columns']))
 		{
-			$observer->setColumns($params['columns']);
+			$this->setColumns($params['columns']);
 		}
-
-		return $observer;
 	}
 
-	public function onAfterLoad(&$result, $row)
+	public function onAfterLoad(&$result)
 	{
 		// Only tun on successful table load
 		if (!$result)
@@ -126,12 +130,23 @@ class LoginGuardTableObserverEncrypt extends AbstractObserver
 		// Decrypt each column specified in the observer
 		foreach ($this->columns as $column)
 		{
-			$value     = $row[$column] ?? '';
+			$value     = $this->table->{$column} ?? '';
+
 			$decrypted = @json_decode($this->decrypt($value), true);
+
+			if (is_string($decrypted))
+			{
+				$decrypted = @json_decode($decrypted, true);
+			}
 
 			if (!is_array($decrypted))
 			{
 				$decrypted = @json_decode($this->decrypt($value, true), true);
+			}
+
+			if (is_string($decrypted))
+			{
+				$decrypted = @json_decode($decrypted, true);
 			}
 
 			$bindings[$column] = empty($decrypted) ? [] : $decrypted;

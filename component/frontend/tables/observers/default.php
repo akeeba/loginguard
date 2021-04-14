@@ -10,6 +10,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Table\Observer\AbstractObserver;
+use Joomla\CMS\Table\Table;
 use Joomla\CMS\Table\TableInterface;
 
 /**
@@ -17,8 +18,15 @@ use Joomla\CMS\Table\TableInterface;
  *
  * @since 5.0.0
  */
-class LoginGuardTableObserverDefault extends AbstractObserver
+class LoginGuardTableObserverDefault
 {
+	/**
+	 * The observed table
+	 *
+	 * @var    Table
+	 */
+	protected $table;
+
 	/**
 	 * Delete flags per ID, set up onBeforeDelete and used onAfterDelete
 	 *
@@ -32,16 +40,9 @@ class LoginGuardTableObserverDefault extends AbstractObserver
 	 */
 	private $mustCreateBackupCodes = 0;
 
-	public static function createObserver(JObservableInterface $observableObject, $params = [])
+	public function __construct(Table $table, array $params = [])
 	{
-		if (!($observableObject instanceof TableInterface))
-		{
-			return null;
-		}
-
-		$observer = new self($observableObject);
-
-		return $observer;
+		$this->table = $table;
 	}
 
 	public function onBeforeStore($updateNulls, $tableKey)
@@ -113,7 +114,7 @@ class LoginGuardTableObserverDefault extends AbstractObserver
 
 		if ($pk != $this->table->id)
 		{
-			$record = \Joomla\CMS\Table\Table::getInstance('Tfa', 'LoginGuardTable');
+			$record = Table::getInstance('Tfa', 'LoginGuardTable');
 			$result = $record->load($pk);
 
 			if (!$result)
@@ -239,6 +240,4 @@ class LoginGuardTableObserverDefault extends AbstractObserver
 
 		return (int) $numOldRecords;
 	}
-
-
 }

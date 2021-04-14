@@ -16,6 +16,8 @@ use Joomla\CMS\User\User;
 
 JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
 
+Table::addIncludePath(JPATH_ROOT . '/components/com_loginguard/tables');
+
 /**
  * Two Step Verification method management model
  */

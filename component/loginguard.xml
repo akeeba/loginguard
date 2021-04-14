@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @package   AkeebaLoginGuard
+  ~ @copyright Copyright (c)2016-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
+  ~ @license   GNU General Public License version 3, or later
+  -->
+
+<extension type="component" version="3.9.0" method="upgrade">
+	<name>LOGINGUARD</name>
+	<version>4.0.0</version>
+	<creationDate>2021-03-02</creationDate>
+
+	<author>Akeeba Ltd</author>
+	<authorEmail>no-reply@akeeba.com</authorEmail>
+	<authorUrl>https://www.akeeba.com</authorUrl>
+
+	<copyright>Copyright (c)2016-2021 Akeeba Ltd</copyright>
+	<license>GNU/GPL v3 or any later version</license>
+
+	<description>Akeeba LoginGuard</description>
+
+	<!-- Public front end files -->
+	<files folder="frontend">
+		<folder>controllers</folder>
+		<folder>helpers</folder>
+		<folder>language</folder>
+		<folder>models</folder>
+		<folder>tables</folder>
+		<folder>views</folder>
+
+		<filename>.htaccess</filename>
+		<filename>controller.php</filename>
+		<filename>index.html</filename>
+		<filename>loginguard.php</filename>
+		<filename>web.config</filename>
+	</files>
+
+	<!-- Front end translation files -->
+	<languages folder="frontend/language">
+		<language tag="en-GB">en-GB/en-GB.com_loginguard.ini</language>
+	</languages>
+
+	<!-- Media files -->
+	<media destination="com_loginguard" folder="media">
+		<folder>css</folder>
+		<folder>images</folder>
+		<folder>js</folder>
+		<filename>index.html</filename>
+	</media>
+
+	<!-- Administrator back-end section -->
+	<administration>
+		<!-- Administration menu -->
+		<menu>COM_LOGINGUARD</menu>
+
+		<!-- Back-end files -->
+		<files folder="backend">
+			<folder>controllers</folder>
+			<folder>helpers</folder>
+			<folder>language</folder>
+			<folder>models</folder>
+			<folder>sql</folder>
+			<folder>vendor</folder>
+			<folder>views</folder>
+
+			<filename>.htaccess</filename>
+			<filename>access.xml</filename>
+			<filename>config.xml</filename>
+			<filename>index.html</filename>
+			<filename>loginguard.php</filename>
+			<filename>web.config</filename>
+		</files>
+
+		<!-- Back-end translation files -->
+		<languages folder="backend/language">
+			<language tag="en-GB">en-GB/en-GB.com_loginguard.ini</language>
+			<language tag="en-GB">en-GB/en-GB.com_loginguard.sys.ini</language>
+		</languages>
+	</administration>
+
+	<!-- Installation / uninstallation script file -->
+	<scriptfile>script.com_loginguard.php</scriptfile>
+</extension>

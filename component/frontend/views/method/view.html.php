@@ -83,9 +83,10 @@ class LoginGuardViewMethod extends BaseHtmlView
 	 */
 	function display($tpl = null)
 	{
+		$app = Factory::getApplication();
+
 		if (empty($this->user))
 		{
-			$app        = Factory::getApplication();
 			$this->user = $app->getIdentity() ?: Factory::getUser();
 		}
 

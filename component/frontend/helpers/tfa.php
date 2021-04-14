@@ -9,6 +9,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\User\User;
@@ -244,6 +245,9 @@ abstract class LoginGuardHelperTfa
 		{
 			return [];
 		}
+
+		BaseDatabaseModel::addIncludePath(JPATH_ROOT . '/components/com_loginguard/models', 'LoginGuardModel');
+		Table::addIncludePath(JPATH_ROOT . '/components/com_loginguard/tables');
 
 		$records = array_map(function ($id) {
 			/** @var LoginGuardTableTfa $record */

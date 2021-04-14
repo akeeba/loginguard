@@ -116,7 +116,7 @@ class LoginGuardModelMethods extends BaseDatabaseModel
 	 *
 	 * @since   1.2.0
 	 */
-	public function formatRelative(string $dateTimeText): string
+	public function formatRelative(?string $dateTimeText): string
 	{
 		if (empty($dateTimeText))
 		{

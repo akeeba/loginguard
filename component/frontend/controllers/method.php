@@ -345,15 +345,13 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 		// Update the record's "default" flag
 		$default         = $this->input->getBool('default', false);
 		$record->title   = $title;
-		$record->options = json_encode($result);
+		$record->options = $result;
 		$record->default = $default ? 1 : 0;
 
 		// Ask the model to save the record
-		try
-		{
-			$model->saveRecord($record);
-		}
-		catch (Exception $e)
+		$saved = $record->store();
+
+		if (!$saved)
 		{
 			// Go back to the edit page
 			$nonSefUrl = 'index.php?option=com_loginguard&task=method.';
@@ -420,7 +418,7 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 	 * @param   int        $id    Record ID to check
 	 * @param   User|null  $user  User record. Null to use current user.
 	 *
-	 * @return  stdClass  The loaded record
+	 * @return  LoginGuardTableTfa  The loaded record
 	 *
 	 */
 	private function _assertValidRecordId($id, ?User $user = null)

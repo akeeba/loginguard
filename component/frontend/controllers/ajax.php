@@ -162,7 +162,7 @@ class LoginGuardControllerAjax extends BaseController
 
 		PluginHelper::importPlugin('loginguard');
 		$results = LoginGuardHelperTfa::runPlugins('onLoginGuardAjax', [$method, $action]);
-		$result = null;
+		$result  = null;
 
 		foreach ($results as $aResult)
 		{
