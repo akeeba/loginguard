@@ -66,6 +66,7 @@
 			<filename>.htaccess</filename>
 			<filename>access.xml</filename>
 			<filename>config.xml</filename>
+			<filename>controller.php</filename>
 			<filename>index.html</filename>
 			<filename>loginguard.php</filename>
 			<filename>web.config</filename>
