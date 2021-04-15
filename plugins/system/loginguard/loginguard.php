@@ -578,7 +578,7 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		// Allow the frontend user to log out (in case they forgot their TFA code or something)
-		if (!$isAdmin && ($option == 'com_users') && ($task == 'user.logout'))
+		if (!$isAdmin && ($option == 'com_users') && ($view == 'user') && ($task == 'logout'))
 		{
 			return false;
 		}
