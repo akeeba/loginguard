@@ -192,7 +192,7 @@ class LoginGuardViewCaptive extends BaseHtmlView
 		// Back-end: always show a title in the 'title' module position, not in the page body
 		if ($this->isAdmin)
 		{
-			ToolbarHelper::title(JText::_('COM_LOGINGUARD_HEAD_TFA_PAGE'), 'lock');
+			ToolbarHelper::title(JText::_('COM_LOGINGUARD_HEAD_TFA_PAGE'), 'loginguard');
 			$this->title = '';
 		}
 

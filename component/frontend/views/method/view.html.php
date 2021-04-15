@@ -132,7 +132,7 @@ class LoginGuardViewMethod extends BaseHtmlView
 		// Back-end: always show a title in the 'title' module position, not in the page body
 		if ($this->isAdmin)
 		{
-			ToolbarHelper::title(Text::_('COM_LOGINGUARD') . " <small>" . $this->title . "</small>", 'lock');
+			ToolbarHelper::title(Text::_('COM_LOGINGUARD') . " <small>" . $this->title . "</small>", 'loginguard');
 
 			$helpUrl = $this->renderOptions['help_url'];
 
