@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * @package   AkeebaBackup
+ * @copyright Copyright (c)2006-2017 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+-->
+<metadata>
+	<layout title="COM_LOGINGUARD_VIEW_METHODS_TITLE">
+		<message>
+			<![CDATA[COM_LOGINGUARD_VIEW_METHODS_DESC]]>
+		</message>
+	</layout>
+	<!--
+	<fields name="request">
+	</fields>
+	-->
+</metadata>
