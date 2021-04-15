@@ -121,6 +121,7 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		}
 
 		/** @var LoginGuardModelBackupcodes $model */
+		BaseDatabaseModel::addIncludePath(JPATH_ROOT . '/components/com_loginguard/models', 'LoginGuardModel');
 		$model       = BaseDatabaseModel::getInstance('Backupcodes', 'LoginGuardModel');
 		$backupCodes = $model->getBackupCodes($this->user);
 

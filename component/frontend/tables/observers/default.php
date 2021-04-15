@@ -13,6 +13,8 @@ use Joomla\CMS\Table\Observer\AbstractObserver;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\Table\TableInterface;
 
+defined('_JEXEC') || die;
+
 /**
  * Manage the default 2SV method and the automatic generation of backup codes.
  *

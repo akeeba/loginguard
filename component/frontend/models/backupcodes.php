@@ -28,6 +28,14 @@ class LoginGuardModelBackupcodes extends BaseDatabaseModel
 	 */
 	protected $cache = [];
 
+	public function __construct($config = [])
+	{
+		parent::__construct($config);
+
+		Table::addIncludePath(JPATH_ROOT . '/components/com_loginguard/tables');
+	}
+
+
 	/**
 	 * Get the backup codes record for the specified user
 	 *

@@ -96,8 +96,11 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 		]);
 		$view->returnURL = $returnURL;
 		$view->user      = $user;
+		$view->document  = Factory::getApplication()->getDocument();
 
-		return parent::display($cachable, $urlparams);
+		$view->setModel($model, true);
+
+		return $view->display();
 	}
 
 	/**
@@ -140,8 +143,11 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 		]);
 		$view->returnURL = $returnURL;
 		$view->user      = $user;
+		$view->document  = Factory::getApplication()->getDocument();
 
-		return parent::display($cachable, $urlparams);
+		$view->setModel($model, true);
+
+		return $view->display();
 	}
 
 	/**
