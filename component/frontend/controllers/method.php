@@ -232,7 +232,7 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 
 		try
 		{
-			$model->deleteRecord($id, $user);
+			$record->delete();
 		}
 		catch (Exception $e)
 		{

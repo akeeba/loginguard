@@ -14,7 +14,7 @@ use Joomla\CMS\Router\Route;
 
 /** @var  LoginGuardViewMethod  $this */
 
-HTMLHelper::_('bootstrap.tooltip');
+HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 
 $cancelURL = Route::_('index.php?option=com_loginguard&task=methods.display&user_id=' . $this->user->id);
 
@@ -23,13 +23,12 @@ if (!empty($this->returnURL))
 	$cancelURL = $this->escape(base64_decode($this->returnURL));
 }
 
+$recordId = (int) $this->record->id ?? 0;
+$method = $this->record->method ?? $this->getModel()->getState('method');
+$userId = (int) $this->user->id ?? 0;
 ?>
-<form action="index.php" method="post" id="loginguard-method-edit" class="form">
-	<input type="hidden" name="option" value="com_loginguard">
-	<input type="hidden" name="task" value="method.save">
-	<input type="hidden" name="id" value="<?= $this->record->id ?>">
-	<input type="hidden" name="method" value="<?= $this->record->method ?? $this->getModel()->getState('method') ?>">
-	<input type="hidden" name="user_id" value="<?= $this->user->id ?>">
+<form action="<?= Route::_(sprintf("index.php?option=com_loginguard&task=method.save&id=%d&method=%s&user_id=%d", $recordId, $method, $userId)) ?>"
+	  class="form" id="loginguard-method-edit" method="post">
 	<?= HTMLHelper::_('form.token') ?>
 	<?php if (!empty($this->returnURL)): ?>
 	<input type="hidden" name="returnurl" value="<?= $this->escape($this->returnURL) ?>">
@@ -45,7 +44,7 @@ if (!empty($this->returnURL))
     <?php if (!empty($this->renderOptions['help_url'])): ?>
     <span class="pull-right float-end">
         <a href="<?= $this->renderOptions['help_url'] ?>"
-           class="btn btn-sm btn-small btn-default btn-inverse"
+           class="btn btn-sm btn-small btn-default btn-inverse btn-dark"
            target="_blank"
         >
             <span class="icon icon-question-sign glyphicon glyphicon-question-sign"></span>

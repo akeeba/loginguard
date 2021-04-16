@@ -16,16 +16,18 @@ use Joomla\CMS\Session\Session;
 
 ?>
 <div id="loginguard-methods-list">
-	<div id="loginguard-methods-reset-container" class="well well-large well-lg col-sm-6 col-sm-offset-3 span6 offset3">
+	<div id="loginguard-methods-reset-container">
+		<div id="loginguard-methods-reset-message">
+            <?= Text::sprintf('COM_LOGINGUARD_LBL_LIST_STATUS', Text::_('COM_LOGINGUARD_LBL_LIST_STATUS_' . ($this->tfaActive ? 'ON' : 'OFF'))) ?>
+        </div>
 		<?php if ($this->tfaActive): ?>
+		<div>
 			<a href="<?= Route::_('index.php?option=com_loginguard&task=methods.disable&' . Session::getFormToken() . '=1' . ($this->returnURL ? '&returnurl=' . $this->escape(urlencode($this->returnURL)) : '') . '&user_id=' . $this->user->id) ?>"
-			   class="btn btn-danger pull-right float-end">
+			   class="btn btn-danger btn-sm">
 				<?= Text::_('COM_LOGINGUARD_LBL_LIST_REMOVEALL'); ?>
 			</a>
+		</div>
 		<?php endif; ?>
-		<span id="loginguard-methods-reset-message">
-            <?= Text::sprintf('COM_LOGINGUARD_LBL_LIST_STATUS', Text::_('COM_LOGINGUARD_LBL_LIST_STATUS_' . ($this->tfaActive ? 'ON' : 'OFF'))) ?>
-        </span>
 	</div>
 
 	<div class="clearfix"></div>

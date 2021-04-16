@@ -14,7 +14,7 @@ use Joomla\CMS\Router\Route;
 
 /** @var  LoginGuardViewMethod $this */
 
-HTMLHelper::_('bootstrap.tooltip');
+HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 
 $cancelURL = Route::_('index.php?option=com_loginguard&task=methods.display&user_id=' . $this->user->id);
 
