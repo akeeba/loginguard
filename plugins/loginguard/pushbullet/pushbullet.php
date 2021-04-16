@@ -5,19 +5,20 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Admin\Model\Tfa;
-use FOF40\Container\Container;
-use FOF40\Encrypt\Totp;
-use FOF40\Input\Input;
+// Prevent direct access
+defined('_JEXEC') || die;
+
+JLoader::register('LoginGuardAuthenticator', JPATH_ADMINISTRATOR . '/components/com_loginguard/helpers/authenticator.php');
+
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
-
-// Prevent direct access
-defined('_JEXEC') || die;
+use Joomla\CMS\Input\Input;
+use LoginGuardAuthenticator as Totp;
 
 /**
  * Akeeba LoginGuard Plugin for Two Step Verification method "Authentication Code by PushBullet"
@@ -43,6 +44,11 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	public $clientId;
 
 	/**
+	 * @var CMSApplication
+	 */
+	protected $app;
+
+	/**
 	 * PushBullet OAuth2 Secret ID
 	 *
 	 * @var   string
@@ -57,14 +63,6 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	private $tfaMethodName = 'pushbullet';
 
 	/**
-	 * The component's container object
-	 *
-	 * @var   Container
-	 * @since 2.0.0
-	 */
-	private $container = null;
-
-	/**
 	 * Constructor. Loads the language files as well.
 	 *
 	 * @param   object  &$subject  The object to observe
@@ -76,21 +74,12 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	{
 		parent::__construct($subject, $config);
 
-		if (!class_exists('LoginGuardPushbulletApi', true))
-		{
-			require_once __DIR__ . '/classes/pushbullet.php';
-		}
-
-		// Get a reference to the component's container
-		$this->container = Container::getInstance('com_loginguard');
+		JLoader::register('LoginGuardPushbulletApi', __DIR__ . '/classes/pushbullet.php');
 
 		// Load the PushBullet API parameters
-		/** @var \Joomla\Registry\Registry $params */
-		$params = $this->params;
-
-		$this->accessToken = $params->get('access_token', null);
-		$this->clientId    = $params->get('client_id', null);
-		$this->secret      = $params->get('secret', null);
+		$this->accessToken = $this->params->get('access_token', null);
+		$this->clientId    = $this->params->get('client_id', null);
+		$this->secret      = $this->params->get('secret', null);
 
 		// Load the language files
 		$this->loadLanguage();
@@ -134,11 +123,11 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	 * user to add or modify a TFA method for their user account. If the record does not correspond to your plugin
 	 * return an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetSetup($record)
+	public function onLoginGuardTfaGetSetup(LoginGuardTableTfa $record): array
 	{
 		$helpURL = $this->params->get('helpurl', 'https://github.com/akeeba/loginguard/wiki/Pushbullet');
 
@@ -153,21 +142,22 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		$key     = $options['key'] ?? '';
 		$token   = $options['token'] ?? '';
 
-		// If there's a key or toekn in the session use that instead.
-		$key   = $this->container->platform->getSessionVar('pushbullet.key', $key, 'com_loginguard');
-		$token = $this->container->platform->getSessionVar('pushbullet.token', $token, 'com_loginguard');
+		// If there's a key or token in the session use that instead.
+		$session = $this->app->getSession();
+		$key     = $session->get('com_loginguard.pushbullet.key', $key);
+		$token   = $session->get('com_loginguard.pushbullet.token', $token);
 
 		// Initialize objects
-		$totp = new Totp();
+		$totp = new Totp(30, 6, 20);
 
 		// If there's still no key in the options, generate one and save it in the session
 		if (empty($key))
 		{
 			$key = $totp->generateSecret();
-			$this->container->platform->setSessionVar('pushbullet.key', $key, 'com_loginguard');
+			$session->set('com_loginguard.pushbullet.key', $key);
 		}
 
-		$this->container->platform->setSessionVar('pushbullet.user_id', $record->user_id, 'com_loginguard');
+		$session->set('com_loginguard.pushbullet.user_id', $record->user_id);
 
 		// If there is no token we need to show the OAuth2 button
 		if (empty($token))
@@ -257,14 +247,14 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	 * message of the exception will be displayed to the user. If the record does not correspond to your plugin return
 	 * an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
-	 * @param   Input     $input   The user input you are going to take into account.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Input               $input   The user input you are going to take into account.
 	 *
 	 * @return  array  The configuration data to save to the database
 	 *
 	 * @throws  RuntimeException  In case the validation fails
 	 */
-	public function onLoginGuardTfaSaveSetup($record, Input $input)
+	public function onLoginGuardTfaSaveSetup(LoginGuardTableTfa $record, Input $input)
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -277,16 +267,18 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		$key     = $options['key'] ?? '';
 		$token   = $options['token'] ?? '';
 
+		$session = $this->app->getSession();
+
 		// If there is no key in the options fetch one from the session
 		if (empty($key))
 		{
-			$key = $this->container->platform->getSessionVar('pushbullet.key', null, 'com_loginguard');
+			$key = $session->get('com_loginguard.pushbullet.key', null);
 		}
 
 		// If there is no key in the options fetch one from the session
 		if (empty($token))
 		{
-			$token = $this->container->platform->getSessionVar('pushbullet.token', null, 'com_loginguard');
+			$token = $session->get('com_loginguard.pushbullet.token', null);
 		}
 
 		// If there is still no key in the options throw an error
@@ -305,7 +297,7 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		 * If the code is empty but the key already existed in $options someone is simply changing the title / default
 		 * method status. We can allow this and stop checking anything else now.
 		 */
-		$code = $input->getInt('code');
+		$code = $input->getCmd('code');
 
 		if (empty($code) && !empty($optionsKey))
 		{
@@ -314,7 +306,7 @@ class PlgLoginguardPushbullet extends CMSPlugin
 
 		// In any other case validate the submitted code
 		$totp    = new Totp();
-		$isValid = $totp->checkCode($key, $code);
+		$isValid = $totp->checkCode((string) $key, (string) $code);
 
 		if (!$isValid)
 		{
@@ -322,12 +314,12 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		}
 
 		// The code is valid. Unset the key from the session.
-		$this->container->platform->setSessionVar('totp.key', null, 'com_loginguard');
+		$session->set('com_loginguard.totp.key', null);
 
 		// Return the configuration to be serialized
 		return [
-			'key'   => $key,
-			'token' => $token,
+			'key'    => $key,
+			'token'  => $token,
 		];
 	}
 
@@ -335,11 +327,11 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	 * Returns the information which allows LoginGuard to render the captive TFA page. This is the page which appears
 	 * right after you log in and asks you to validate your login with TFA.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive($record)
+	public function onLoginGuardTfaCaptive(LoginGuardTableTfa $record)
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -387,13 +379,13 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	 * Validates the Two Factor Authentication code submitted by the user in the captive Two Step Verification page. If
 	 * the record does not correspond to your plugin return FALSE.
 	 *
-	 * @param   Tfa     $record  The TFA method's record you're validatng against
-	 * @param   User    $user    The user record
-	 * @param   string  $code    The submitted code
+	 * @param   LoginGuardTableTfa  $record  The TFA method's record you're validatng against
+	 * @param   User                $user    The user record
+	 * @param   string              $code    The submitted code
 	 *
 	 * @return  bool
 	 */
-	public function onLoginGuardTfaValidate(Tfa $record, User $user, $code)
+	public function onLoginGuardTfaValidate(LoginGuardTableTfa $record, User $user, $code)
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -420,20 +412,20 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		// Check the TFA code for validity
 		$totp = new Totp();
 
-		return $totp->checkCode($key, $code);
+		return $totp->checkCode((string) $key, (string) $code);
 	}
 
 	/**
 	 * Creates a new TOTP code based on secret key $key and sends it to the user via PushBullet using the access token
 	 * $token.
 	 *
-	 * @param   string  $key    The TOTP secret key
-	 * @param   string  $token  The PushBullet access token
-	 * @param   User    $user   The Joomla! user to use
+	 * @param   string     $key     The TOTP secret key
+	 * @param   string     $token   The PushBullet access token
+	 * @param   User|null  $user    The Joomla! user to use
 	 *
 	 * @return  void
 	 *
-	 * @throws  LoginGuardPushbulletApiException  If something goes wrong
+	 * @throws LoginGuardPushbulletApiException If something goes wrong
 	 */
 	public function sendCode($key, $token, User $user = null)
 	{
@@ -444,7 +436,7 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		}
 
 		// Get the API objects
-		$totp       = new Totp();
+		$totp       = new Totp(30, 6);
 		$pushBullet = new LoginGuardPushbulletApi($token);
 
 		// Create the list of variable replacements
@@ -509,7 +501,7 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		$token = $input->getString('token', null);
 
 		// If I have no token and it's the front-end I have received a token in the URL fragment from PushBullet
-		if (empty($token) && !$this->container->platform->isBackend())
+		if (empty($token) && !$this->app->isClient('administrator'))
 		{
 			// The returned URL has a code query string parameter I need to use to retrieve a token
 			$code  = $input->getString('code', null);
@@ -528,11 +520,13 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		}
 
 		// Set the token to the session
-		$this->container->platform->setSessionVar('pushbullet.token', $token, 'com_loginguard');
+		$session = $this->app->getSession();
+
+		$session->set('com_loginguard.pushbullet.token', $token);
 
 		// Get the User ID for the editor page
-		$user_id = $this->container->platform->getSessionVar('pushbullet.user_id', null, 'com_loginguard');
-		$this->container->platform->setSessionVar('pushbullet.user_id', null, 'com_loginguard');
+		$user_id = $session->get('com_loginguard.pushbullet.user_id', null);
+		$session->set('com_loginguard.pushbullet.user_id', null);
 
 		// Redirect to the editor page
 		$userPart    = empty($user_id) ? '' : ('&user_id=' . $user_id);
@@ -547,15 +541,15 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	/**
 	 * Decodes the options from a #__loginguard_tfa record into an options object.
 	 *
-	 * @param   stdClass  $record
+	 * @param   LoginGuardTableTfa  $record
 	 *
 	 * @return  array
 	 */
-	private function _decodeRecordOptions($record)
+	private function _decodeRecordOptions(LoginGuardTableTfa $record)
 	{
 		$options = [
-			'key'   => '',
-			'token' => '',
+			'key'    => '',
+			'token'  => '',
 		];
 
 		if (!empty($record->options))

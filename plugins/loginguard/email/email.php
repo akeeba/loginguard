@@ -216,7 +216,7 @@ class PlgLoginguardEmail extends CMSPlugin
 		 * If the code is empty but the key already existed in $options someone is simply changing the title / default
 		 * method status. We can allow this and stop checking anything else now.
 		 */
-		$code = $input->getInt('code');
+		$code = $input->getCmd('code');
 
 		if (empty($code) && !empty($optionsKey))
 		{
@@ -225,8 +225,8 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// In any other case validate the submitted code
 		$timeStep = min(max((int) $this->params->get('timestep', 120), 30), 900);
-		$totp     = new Totp($timeStep, self::CODE_LENGTH, self::SECRET_KEY_LENGTH);
-		$isValid  = $totp->checkCode($key, $code);
+		$totp     = new Totp($timeStep, self::CODE_LENGTH, $length);
+		$isValid  = $totp->checkCode((string) $key, (string) $code);
 
 		if (!$isValid)
 		{
@@ -247,11 +247,11 @@ class PlgLoginguardEmail extends CMSPlugin
 	 * Returns the information which allows LoginGuard to render the captive TFA page. This is the page which appears
 	 * right after you log in and asks you to validate your login with TFA.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive($record)
+	public function onLoginGuardTfaCaptive(LoginGuardTableTfa $record)
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -337,7 +337,7 @@ class PlgLoginguardEmail extends CMSPlugin
 		$timeStep = min(max((int) $this->params->get('timestep', 120), 30), 900);
 		$totp     = new Totp($timeStep, self::CODE_LENGTH, $length);
 
-		return $totp->checkCode($key, $code);
+		return $totp->checkCode((string) $key, (string) $code);
 	}
 
 	/**
@@ -479,7 +479,8 @@ class PlgLoginguardEmail extends CMSPlugin
 	private function _decodeRecordOptions(LoginGuardTableTfa $record)
 	{
 		$options = [
-			'key' => '',
+			'key'    => '',
+			'length' => 10,
 		];
 
 		if (!empty($record->options))

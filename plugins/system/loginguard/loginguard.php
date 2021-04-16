@@ -412,7 +412,7 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		// Otherwise redirect to the LoginGuard TSV setup page after enqueueing a message
-		$url = Uri::base() . 'index.php?option=com_loginguard&view=Methods';
+		$url = Route::_('index.php?option=com_loginguard&view=Methods');
 		$app->redirect($url, 307);
 	}
 

@@ -1,1 +1,2 @@
+# [LOW] TOTP codes (email, pushbullet etc) are sent twice
 # [HIGH] Backup codes not removed after removing the last TSV method

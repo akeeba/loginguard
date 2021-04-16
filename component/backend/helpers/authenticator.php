@@ -56,13 +56,13 @@ class LoginGuardAuthenticator
 	 * in the last paragraph of §5.2 of RFC6238. It's up to you to ensure that the same user/device does not retry
 	 * validation within the same Time Step.
 	 *
-	 * @param   int              $timeStep             The Time Step (in seconds). Use 30 to be compatible with Google
+	 * @param   int               $timeStep            The Time Step (in seconds). Use 30 to be compatible with Google
 	 *                                                 Authenticator.
-	 * @param   int              $passCodeLength       The generated passcode length. Default: 6 digits.
-	 * @param   int              $secretLength         The length of the secret key. Default: 10 bytes (80 bits).
-	 * @param   LoginGuardBase32 $base32               The base32 en/decrypter
+	 * @param   int               $passCodeLength      The generated passcode length. Default: 6 digits.
+	 * @param   int               $secretLength        The length of the secret key. Default: 10 bytes (80 bits).
+	 * @param   LoginGuardBase32  $base32              The base32 en/decrypter
 	 */
-	public function __construct($timeStep = 30, $passCodeLength = 6, $secretLength = 10, $base32=null)
+	public function __construct($timeStep = 30, $passCodeLength = 6, $secretLength = 10, $base32 = null)
 	{
 		$this->_timeStep       = $timeStep;
 		$this->_passCodeLength = $passCodeLength;
@@ -104,16 +104,16 @@ class LoginGuardAuthenticator
 	 *
 	 * @return  boolean True if the code is valid
 	 */
-	public function checkCode($secret, $code)
+	public function checkCode(string $secret, string $code): bool
 	{
-		$time = $this->getPeriod();
+		$time   = $this->getPeriod();
 		$result = false;
 
 		for ($i = -1; $i <= 1; $i++)
 		{
 			$generatedCode = $this->getCode($secret, ($time + $i) * $this->_timeStep);
 
-			if (JCrypt::timingSafeCompare($generatedCode, $code))
+			if (hash_equals($generatedCode, $code))
 			{
 				$result = true;
 			}
@@ -132,36 +132,21 @@ class LoginGuardAuthenticator
 	 */
 	public function getCode($secret, $time = null)
 	{
-		$period = $this->getPeriod($time);
-		$secret = $this->_base32->decode($secret);
+		$period              = $this->getPeriod($time);
+		$secret              = $this->_base32->decode($secret);
+		$this->_secretLength = mb_strlen($secret, '8bit');
 
 		$time = pack("N", $period);
 		$time = str_pad($time, 8, chr(0), STR_PAD_LEFT);
 
-		$hash = hash_hmac('sha1', $time, $secret, true);
+		$hash   = hash_hmac('sha1', $time, $secret, true);
 		$offset = ord(substr($hash, -1));
 		$offset = $offset & 0xF;
 
 		$truncatedHash = $this->hashToInt($hash, $offset) & 0x7FFFFFFF;
-		$pinValue = str_pad($truncatedHash % $this->_pinModulo, $this->_passCodeLength, "0", STR_PAD_LEFT);
+		$pinValue      = str_pad($truncatedHash % $this->_pinModulo, $this->_passCodeLength, "0", STR_PAD_LEFT);
 
 		return $pinValue;
-	}
-
-	/**
-	 * Extracts a part of a hash as an integer
-	 *
-	 * @param   string  $bytes  The hash
-	 * @param   string  $start  The char to start from (0 = first char)
-	 *
-	 * @return  string
-	 */
-	protected function hashToInt($bytes, $start)
-	{
-		$input = substr($bytes, $start, strlen($bytes) - $start);
-		$val2 = unpack("N", substr($input, 0, 4));
-
-		return $val2[1];
 	}
 
 	/**
@@ -175,8 +160,8 @@ class LoginGuardAuthenticator
 	 */
 	public function getUrl($user, $hostname, $secret)
 	{
-		$url = sprintf("otpauth://totp/%s@%s?secret=%s", $user, $hostname, $secret);
-		$encoder = "https://chart.googleapis.com/chart?chs=200x200&chld=Q|2&cht=qr&chl=";
+		$url        = sprintf("otpauth://totp/%s@%s?secret=%s", $user, $hostname, $secret);
+		$encoder    = "https://chart.googleapis.com/chart?chs=200x200&chld=Q|2&cht=qr&chl=";
 		$encoderURL = $encoder . urlencode($url);
 
 		return $encoderURL;
@@ -189,8 +174,34 @@ class LoginGuardAuthenticator
 	 */
 	public function generateSecret()
 	{
-		$secret = JCrypt::genRandomBytes($this->_secretLength);
+		$secret = random_bytes($this->_secretLength);
 
 		return $this->_base32->encode($secret);
+	}
+
+	/**
+	 * Returns the length of the secret key, in bytes
+	 *
+	 * @return int
+	 */
+	public function getSecretLength(): int
+	{
+		return $this->_secretLength;
+	}
+
+	/**
+	 * Extracts a part of a hash as an integer
+	 *
+	 * @param   string  $bytes  The hash
+	 * @param   string  $start  The char to start from (0 = first char)
+	 *
+	 * @return  string
+	 */
+	protected function hashToInt($bytes, $start)
+	{
+		$input = substr($bytes, $start, strlen($bytes) - $start);
+		$val2  = unpack("N", substr($input, 0, 4));
+
+		return $val2[1];
 	}
 }
