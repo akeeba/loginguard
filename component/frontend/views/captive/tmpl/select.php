@@ -27,40 +27,42 @@ $shownMethods = [];
         </p>
     </div>
 
-	<?php foreach ($this->records as $record):
-    if (!array_key_exists($record->method, $this->tfaMethods) && ($record->method != 'backupcodes')) continue;
-    $allowEntryBatching = isset($this->tfaMethods[$record->method]) ? $this->tfaMethods[$record->method]['allowEntryBatching'] : false;
+	<div class="loginguard-select-methods">
+		<?php foreach ($this->records as $record):
+		if (!array_key_exists($record->method, $this->tfaMethods) && ($record->method != 'backupcodes')) continue;
+		$allowEntryBatching = isset($this->tfaMethods[$record->method]) ? $this->tfaMethods[$record->method]['allowEntryBatching'] : false;
 
-    if ($this->allowEntryBatching)
-    {
-	    if ($allowEntryBatching && in_array($record->method, $shownMethods)) continue;
-	    $shownMethods[] = $record->method;
-    }
+		if ($this->allowEntryBatching)
+		{
+			if ($allowEntryBatching && in_array($record->method, $shownMethods)) continue;
+			$shownMethods[] = $record->method;
+		}
 
-    $methodName = $this->getModel()->translateMethodName($record->method);
-    ?>
-    <a class="loginguard-method"
-	   href="<?= Route::_('index.php?option=com_loginguard&view=captive&record_id=' . $record->id)?>">
-        <img src="<?= Uri::root() . $this->getModel()->getMethodImage($record->method) ?>" class="loginguard-method-image" />
-        <?php if (!$this->allowEntryBatching || !$allowEntryBatching): ?>
-        <span class="loginguard-method-title">
-			<?php if ($record->method === 'backupcodes'): ?>
-				<?= $record->title ?>
+		$methodName = $this->getModel()->translateMethodName($record->method);
+		?>
+		<a class="loginguard-method"
+		   href="<?= Route::_('index.php?option=com_loginguard&view=captive&record_id=' . $record->id)?>">
+			<img src="<?= Uri::root() . $this->getModel()->getMethodImage($record->method) ?>" class="loginguard-method-image" />
+			<?php if (!$this->allowEntryBatching || !$allowEntryBatching): ?>
+			<span class="loginguard-method-title">
+				<?php if ($record->method === 'backupcodes'): ?>
+					<?= $record->title ?>
+				<?php else: ?>
+					<?= $this->escape($record->title) ?>
+				<?php endif; ?>
+			</span>
+			<span class="loginguard-method-name">
+				<?= $methodName ?>
+			</span>
 			<?php else: ?>
-            	<?= $this->escape($record->title) ?>
+				<span class="loginguard-method-title">
+				<?= $methodName ?>
+			</span>
+				<span class="loginguard-method-name">
+				<?= $methodName ?>
+			</span>
 			<?php endif; ?>
-        </span>
-        <span class="loginguard-method-name">
-            <?= $methodName ?>
-        </span>
-        <?php else: ?>
-            <span class="loginguard-method-title">
-            <?= $methodName ?>
-        </span>
-            <span class="loginguard-method-name">
-            <?= $methodName ?>
-        </span>
-        <?php endif; ?>
-    </a>
-	<?php endforeach; ?>
+		</a>
+		<?php endforeach; ?>
+	</div>
 </div>

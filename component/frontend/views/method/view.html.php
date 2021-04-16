@@ -9,6 +9,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\ApplicationHelper;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -149,7 +150,7 @@ class LoginGuardViewMethod extends BaseHtmlView
 		$mediaVersion = ApplicationHelper::getHash(LoginGuardHelperVersion::component('com_loginguard'));
 
 		// Include CSS
-		HTMLHelper::_('stylesheet', 'com_loginguard/methods.min.css', [
+		HTMLHelper::_('stylesheet', 'com_loginguard/methods.css', [
 			'version'       => $mediaVersion,
 			'relative'      => true,
 			'detectDebug'   => true,
@@ -158,6 +159,19 @@ class LoginGuardViewMethod extends BaseHtmlView
 		], [
 			'type' => 'text/css',
 		]);
+
+		if (ComponentHelper::getParams('com_loginguard')->get('dark_mode') != 0)
+		{
+			HTMLHelper::_('stylesheet', 'com_loginguard/dark.css', [
+				'version'       => $mediaVersion,
+				'relative'      => true,
+				'detectDebug'   => true,
+				'pathOnly'      => false,
+				'detectBrowser' => true,
+			], [
+				'type' => 'text/css',
+			]);
+		}
 
 		// Display the view
 		return parent::display($tpl);

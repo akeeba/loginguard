@@ -201,7 +201,7 @@ class LoginGuardViewCaptive extends BaseHtmlView
 		$mediaVersion = ApplicationHelper::getHash(LoginGuardHelperVersion::component('com_loginguard'));
 
 		// Include CSS
-		HTMLHelper::_('stylesheet', 'com_loginguard/captive.min.css', [
+		HTMLHelper::_('stylesheet', 'com_loginguard/captive.css', [
 			'version'       => $mediaVersion,
 			'relative'      => true,
 			'detectDebug'   => true,
@@ -210,6 +210,19 @@ class LoginGuardViewCaptive extends BaseHtmlView
 		], [
 			'type' => 'text/css',
 		]);
+
+		if (ComponentHelper::getParams('com_loginguard')->get('dark_mode') != 0)
+		{
+			HTMLHelper::_('stylesheet', 'com_loginguard/dark.css', [
+				'version'       => $mediaVersion,
+				'relative'      => true,
+				'detectDebug'   => true,
+				'pathOnly'      => false,
+				'detectBrowser' => true,
+			], [
+				'type' => 'text/css',
+			]);
+		}
 
 		// Display the view
 		return parent::display($tpl);

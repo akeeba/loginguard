@@ -9,6 +9,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\ApplicationHelper;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -150,7 +151,7 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		$mediaVersion = ApplicationHelper::getHash(LoginGuardHelperVersion::component('com_loginguard'));
 
 		// Include CSS
-		HTMLHelper::_('stylesheet', 'com_loginguard/methods.min.css', [
+		HTMLHelper::_('stylesheet', 'com_loginguard/methods.css', [
 			'version'       => $mediaVersion,
 			'relative'      => true,
 			'detectDebug'   => true,
@@ -159,6 +160,19 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		], [
 			'type' => 'text/css',
 		]);
+
+		if (ComponentHelper::getParams('com_loginguard')->get('dark_mode') != 0)
+		{
+			HTMLHelper::_('stylesheet', 'com_loginguard/dark.css', [
+				'version'       => $mediaVersion,
+				'relative'      => true,
+				'detectDebug'   => true,
+				'pathOnly'      => false,
+				'detectBrowser' => true,
+			], [
+				'type' => 'text/css',
+			]);
+		}
 
 		// Back-end: always show a title in the 'title' module position, not in the page body
 		if ($this->isAdmin)

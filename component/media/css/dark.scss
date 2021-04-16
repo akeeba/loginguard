@@ -1,0 +1,29 @@
+/*!
+ * @package   AkeebaLoginGuard
+ * @copyright Copyright (c)2016-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+ */
+
+@media screen and (prefers-color-scheme: dark)
+{
+  :root {
+    --loginguard-border: slategray;
+    --loginguard-border-default: cornflowerblue;
+    --loginguard-small: darkgray;
+    --loginguard-lastused: darkgray;
+
+    --loginguard-recordname: white;
+    --loginguard-methodname: darkgray;
+  }
+
+  .loginguard-methods-list-method-image img,
+  .loginguard-method img {
+    background-color: rgba(255, 255, 255, .55);
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+
+  #loginguard-methods-reset-container {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
