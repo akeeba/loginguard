@@ -1,0 +1,57 @@
+/*!
+ * @package   AkeebaLoginGuard
+ * @copyright Copyright (c)2016-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+ */
+
+:root {
+  --loginguard-border: lightgray;
+  --loginguard-recordname: black;
+  --loginguard-methodname: gray;
+  --loginguard-small: gray;
+}
+
+#loginguard-select {
+  div.loginguard-select-methods
+  {
+    padding: 1em clamp(10px, 10%, 100px);
+
+    a.loginguard-method {
+      padding: 0.25em;
+      border-top: thin solid var(--loginguard-border);
+      background: rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-items: flex-start;
+      align-items: center;
+      text-decoration: none;
+
+      .loginguard-method-title {
+        margin: 0 clamp(3px, 1em, 20px);
+        flex-grow: 20;
+        color: var(--loginguard-recordname);
+        font-size: 1rem;
+
+        small {
+          font-size: max(7pt, 0.75rem);
+          color: var(--loginguard-small);
+        }
+      }
+
+      .loginguard-method-name {
+        font-size: max(8pt, 0.85rem);
+        color: var(--loginguard-methodname);
+        font-style: italic;
+      }
+
+      &:last-child {
+        border-bottom: thin solid var(--loginguard-border);
+      }
+
+      &:hover {
+        background: rgba(40, 150, 240, .05);
+      }
+    }
+  }
+}
