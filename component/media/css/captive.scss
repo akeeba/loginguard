@@ -9,6 +9,13 @@
   --loginguard-recordname: black;
   --loginguard-methodname: gray;
   --loginguard-small: gray;
+  --loginguard-toggle-bg: lightgray;
+  --loginguard-toggle-bg-hover: darkgray;
+  --loginguard-toggle-border: gray;
+  --loginguard-toggle-textshadow: gray;
+  --loginguard-toggle-default: cornflowerblue;
+  --loginguard-toggle-green: limegreen;
+  --loginguard-toggle-red: red;
 }
 
 #loginguard-select {
@@ -54,4 +61,82 @@
       }
     }
   }
+}
+
+.loginguard-toggle {
+  display: inline-block;
+  clear: both;
+  margin: 5px 0 10px;
+
+  label {
+    cursor: pointer;
+    display: inline;
+    float: left;
+    padding: .35em .75em;
+    position: relative;
+    background: var(--loginguard-toggle-bg);
+    border-right: 1px solid var(--loginguard-toggle-border);
+
+    &:hover {
+      background: var(--loginguard-toggle-bg-hover);
+    }
+
+    &:first-of-type {
+      border-radius: .25rem 0 0 .25rem;
+    }
+
+    &:last-of-type {
+      border-radius: 0 .25rem .25rem 0;
+      border-right: 0;
+    }
+  }
+
+  input {
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    width: 1px;
+    border: 0;
+    overflow: hidden;
+    opacity: 0;
+    position: absolute;
+
+    &:focus + label,
+    &:active + label {
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--loginguard-toggle-textshadow);
+    }
+
+    &:checked:focus + label,
+    &:checked:active + label {
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--loginguard-toggle-default);
+
+      &.green {
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--loginguard-toggle-green);
+      }
+
+      &.red {
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--loginguard-toggle-red);
+      }
+
+    }
+
+    &:checked + label {
+      background: var(--loginguard-toggle-default);
+      color: white;
+
+      &.green {
+        background: var(--loginguard-toggle-green);
+      }
+
+      &.red {
+        background: var(--loginguard-toggle-red);
+      }
+    }
+
+    &[type=checkbox]:checked + label {
+      &:hover {
+        background: var(--loginguard-toggle-default);
+      }
+    }
+  }
+
 }

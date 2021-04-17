@@ -5,7 +5,7 @@
   ~ @license   GNU General Public License version 3, or later
   -->
 <config
-        addfieldpath="/administrator/components/com_loginguard/model/fields"
+        addfieldpath="/administrator/components/com_loginguard/models/fields"
 >
 
     <fieldset name="captive"

@@ -30,7 +30,7 @@
 		<language tag="en-GB">en-GB/en-GB.plg_system_loginguard.sys.ini</language>
 	</languages>
 
-	<config addfieldpath="/administrator/components/com_loginguard/model/fields">
+	<config addfieldpath="/administrator/components/com_loginguard/models/fields">
 		<fields name="params">
 			<fieldset name="basic">
 				<field

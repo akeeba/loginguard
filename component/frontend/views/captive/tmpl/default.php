@@ -72,31 +72,37 @@ JS;
 		        $this->document->addScriptDeclaration($js);
 
             ?>
-                <div class="form-group">
-                    <label for="loginGuardCode" <?= $this->renderOptions['label'] ? '' : 'class="hidden" aria-hidden="true"'?>>
+                <div class="form-group control-group">
+					<?php if ($this->renderOptions['label']): ?>
+                    <label for="loginGuardCode" class="form-label">
 	                    <?= $this->renderOptions['label'] ?>
                     </label>
-                    <input type="<?= $this->renderOptions['input_type'] ?>"
-                           name="code"
-                           value=""
-					    <?php if (!empty($this->renderOptions['placeholder'])): ?>
-                            placeholder="<?= $this->renderOptions['placeholder'] ?>"
-					    <?php endif; ?>
-                           id="loginGuardCode"
-                           class="form-control input-large"
-                    >
+					<?php endif; ?>
+					<div class="controls">
+						<input type="<?= $this->renderOptions['input_type'] ?>"
+							   name="code"
+							   value=""
+							<?php if (!empty($this->renderOptions['placeholder'])): ?>
+								placeholder="<?= $this->renderOptions['placeholder'] ?>"
+							<?php endif; ?>
+							   id="loginGuardCode"
+							   class="form-control input-large"
+						>
+					</div>
                 </div>
 
 			    <?php if (!empty($this->browserId) && $allowRememberMe): ?>
-				<div id="loginguard-captive-form-remember-me" class="form-group">
-					<label for="loginguard-rememberme-yes">
+				<div id="loginguard-captive-form-remember-me" class="form-group control-group">
+					<label for="loginguard-rememberme-yes" class="form-label">
 					    <?= Text::_('JGLOBAL_REMEMBER_ME') ?>
 					</label>
-					<div class="akeeba-toggle" id="loginguard-rememberme-container">
-						<input id="loginguard-rememberme-yes" type="radio" name="rememberme" value="1" checked />
-						<label for="loginguard-rememberme-yes" class="green"><?= Text::_('JYES') ?></label>
-						<input id="loginguard-rememberme-no" type="radio" name="rememberme" value="0" />
-						<label for="loginguard-rememberme-no" class="red"><?= Text::_('JNO') ?></label>
+					<div class="controls">
+						<div class="loginguard-toggle" id="loginguard-rememberme-container">
+							<input id="loginguard-rememberme-yes" type="radio" name="rememberme" value="1" checked />
+							<label for="loginguard-rememberme-yes" class="green"><?= Text::_('JYES') ?></label>
+							<input id="loginguard-rememberme-no" type="radio" name="rememberme" value="0" />
+							<label for="loginguard-rememberme-no" class="red"><?= Text::_('JNO') ?></label>
+						</div>
 					</div>
 				</div>
 		    	<?php endif;?>

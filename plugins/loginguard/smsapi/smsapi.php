@@ -456,6 +456,13 @@ class PlgLoginguardSmsapi extends CMSPlugin
 	 */
 	public function sendCode(string $key, string $phone, User $user = null): void
 	{
+		static $alreadySent = false;
+
+		if ($alreadySent)
+		{
+			return;
+		}
+
 		// Make sure we have a user
 		if (!is_object($user) || !($user instanceof User))
 		{
@@ -492,6 +499,8 @@ class PlgLoginguardSmsapi extends CMSPlugin
 		$actionSend->setText($message);
 
 		$response = $actionSend->execute();
+
+		$alreadySent = true;
 	}
 
 	/**
