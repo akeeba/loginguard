@@ -5,19 +5,19 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Admin\Model\Tfa;
-use FOF40\Container\Container;
-use FOF40\Encrypt\Totp;
-use FOF40\Input\Input;
+// Prevent direct access
+defined('_JEXEC') || die;
+
+use Joomla\CMS\Application\CMSApplication;
+use LoginGuardAuthenticator as Totp;
+use LoginGuardTableTfa as Tfa;
+use Joomla\CMS\Input\Input;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
-
-// Prevent direct access
-defined('_JEXEC') || die;
 
 /**
  * Akeeba LoginGuard Plugin for Two Step Verification method "Time-based One Time Password"
@@ -28,18 +28,16 @@ defined('_JEXEC') || die;
 class PlgLoginguardTotp extends CMSPlugin
 {
 	/**
+	 * @var CMSApplication
+	 */
+	protected $app;
+
+	/**
 	 * The TFA method name handled by this plugin
 	 *
 	 * @var   string
 	 */
 	private $tfaMethodName = 'totp';
-
-	/**
-	 * The component's container object
-	 *
-	 * @var   Container
-	 */
-	private $container = null;
 
 	/**
 	 * Constructor. Loads the language files as well.
@@ -52,9 +50,6 @@ class PlgLoginguardTotp extends CMSPlugin
 	public function __construct($subject, array $config = [])
 	{
 		parent::__construct($subject, $config);
-
-		// Get a reference to the component's container
-		$this->container = Container::getInstance('com_loginguard');
 
 		$this->loadLanguage();
 	}
@@ -90,11 +85,11 @@ class PlgLoginguardTotp extends CMSPlugin
 	 * Returns the information which allows LoginGuard to render the captive TFA page. This is the page which appears
 	 * right after you log in and asks you to validate your login with TFA.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive($record)
+	public function onLoginGuardTfaCaptive(Tfa $record): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -129,11 +124,11 @@ class PlgLoginguardTotp extends CMSPlugin
 	 * user to add or modify a TFA method for their user account. If the record does not correspond to your plugin
 	 * return an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Tfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetSetup($record)
+	public function onLoginGuardTfaGetSetup(Tfa $record): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -146,9 +141,10 @@ class PlgLoginguardTotp extends CMSPlugin
 		// Load the options from the record (if any)
 		$options = $this->_decodeRecordOptions($record);
 		$key     = $options['key'] ?? '';
+		$session = $this->app->getSession();
 
 		// If there's a key in the session use that instead.
-		$sessionKey = $this->container->platform->getSessionVar('totp.key', null, 'com_loginguard');
+		$sessionKey = $session->get('com_loginguard.totp.key', null);
 
 		if (!empty($sessionKey))
 		{
@@ -159,7 +155,7 @@ class PlgLoginguardTotp extends CMSPlugin
 		if (empty($key))
 		{
 			$key = $totp->generateSecret();
-			$this->container->platform->setSessionVar('totp.key', $key, 'com_loginguard');
+			$session->set('com_loginguard.totp.key', $key);
 		}
 
 		// Generate a QR code for the key
@@ -215,14 +211,13 @@ class PlgLoginguardTotp extends CMSPlugin
 	 * message of the exception will be displayed to the user. If the record does not correspond to your plugin return
 	 * an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
-	 * @param   Input     $input   The user input you are going to take into account.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Input               $input   The user input you are going to take into account.
 	 *
 	 * @return  array  The configuration data to save to the database
 	 *
-	 * @throws  RuntimeException  In case the validation fails
 	 */
-	public function onLoginGuardTfaSaveSetup($record, Input $input)
+	public function onLoginGuardTfaSaveSetup(Tfa $record, Input $input): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -234,11 +229,12 @@ class PlgLoginguardTotp extends CMSPlugin
 		$options    = $this->_decodeRecordOptions($record);
 		$optionsKey = $options['key'] ?? '';
 		$key        = $optionsKey;
+		$session = $this->app->getSession();
 
 		// If there is no key in the options fetch one from the session
 		if (empty($key))
 		{
-			$key = $this->container->platform->getSessionVar('totp.key', null, 'com_loginguard');
+			$key = $session->get('com_loginguard.totp.key', null);
 		}
 
 		// If there is still no key in the options throw an error
@@ -268,7 +264,7 @@ class PlgLoginguardTotp extends CMSPlugin
 		}
 
 		// The code is valid. Unset the key from the session.
-		$this->container->platform->setSessionVar('totp.key', null, 'com_loginguard');
+		$session->set('com_loginguard.totp.key', null);
 
 		// Return the configuration to be serialized
 		return [
@@ -286,7 +282,7 @@ class PlgLoginguardTotp extends CMSPlugin
 	 *
 	 * @return  bool
 	 */
-	public function onLoginGuardTfaValidate(Tfa $record, User $user, $code)
+	public function onLoginGuardTfaValidate(Tfa $record, User $user, string $code): bool
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -338,12 +334,14 @@ class PlgLoginguardTotp extends CMSPlugin
 			'async' => false,
 		]);
 
+		$this->app->getDocument()->addScriptOptions('plg_loginguard.totp.qr', $QRContent);
+
 		$js = /** @lang JavaScript */
 			<<< JS
 ;; // Defense against broken scripts
-akeeba.Loader.add(['QRCode'], function() {
-	new QRCode('loginGuardQRImage', {
-	        text: '$QRContent',
+window.addEventListener('DOMContentLoaded', function (event) {
+    new QRCode('loginGuardQRImage', {
+	        text: Joomla.getOptions('plg_loginguard.totp.qr'),
 	        width: 300,
 	        height: 300,
 	        colorDark : "#000000",
@@ -361,11 +359,11 @@ JS;
 	/**
 	 * Decodes the options from a #__loginguard_tfa record into an options object.
 	 *
-	 * @param   stdClass  $record
+	 * @param   Tfa  $record
 	 *
 	 * @return  array
 	 */
-	private function _decodeRecordOptions($record)
+	private function _decodeRecordOptions(Tfa $record): array
 	{
 		$options = [
 			'key' => '',

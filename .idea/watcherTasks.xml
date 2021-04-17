@@ -22,14 +22,14 @@
       <envs />
     </TaskOptions>
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="$FileName$ --out-dir dist --source-maps --presets @babel/env" />
+      <option name="arguments" value="$FileName$ -o $FileNameWithoutExtension$.min.js --source-maps" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" />
       <option name="exitCodeBehavior" value="ERROR" />
       <option name="fileExtension" value="js" />
       <option name="immediateSync" value="false" />
       <option name="name" value="Babel - Main JavaScript" />
-      <option name="output" value="plugins/loginguard/webauthn/media/js/dist/$FileNameWithoutExtension$.js:dist/$FileDirRelativeToProjectRoot$/$FileNameWithoutExtension$.js.map" />
+      <option name="output" value="plugins/loginguard/webauthn/media/js/$FileNameWithoutExtension$.min.js:dist/$FileDirRelativeToProjectRoot$/$FileNameWithoutExtension$.min.js.map" />
       <option name="outputFilters">
         <array />
       </option>
@@ -47,7 +47,7 @@
       <option name="description" />
       <option name="exitCodeBehavior" value="ERROR" />
       <option name="fileExtension" value="scss" />
-      <option name="immediateSync" value="true" />
+      <option name="immediateSync" value="false" />
       <option name="name" value="SCSS" />
       <option name="output" value="$FileNameWithoutExtension$.css:$FileNameWithoutExtension$.css.map" />
       <option name="outputFilters">
@@ -57,26 +57,6 @@
       <option name="program" value="$ProjectFileDir$/node_modules/.bin/sass" />
       <option name="runOnExternalChanges" value="true" />
       <option name="scopeName" value="Project Files" />
-      <option name="trackOnlyRoot" value="true" />
-      <option name="workingDir" value="$FileDir$" />
-      <envs />
-    </TaskOptions>
-    <TaskOptions isEnabled="true">
-      <option name="arguments" value="--compilation_level SIMPLE_OPTIMIZATIONS --js $FileName$" />
-      <option name="checkSyntaxErrors" value="true" />
-      <option name="description" />
-      <option name="exitCodeBehavior" value="ERROR" />
-      <option name="fileExtension" value="js" />
-      <option name="immediateSync" value="true" />
-      <option name="name" value="Closure Compiler" />
-      <option name="output" value="$FileNameWithoutExtension$.min.js" />
-      <option name="outputFilters">
-        <array />
-      </option>
-      <option name="outputFromStdout" value="true" />
-      <option name="program" value="closure-compiler" />
-      <option name="runOnExternalChanges" value="true" />
-      <option name="scopeName" value="Non-minified JS files" />
       <option name="trackOnlyRoot" value="true" />
       <option name="workingDir" value="$FileDir$" />
       <envs />
