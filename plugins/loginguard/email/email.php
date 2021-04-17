@@ -426,6 +426,8 @@ class PlgLoginguardEmail extends CMSPlugin
 	 */
 	public function sendCode($key, User $user = null, int $secretLength = self::SECRET_KEY_LENGTH)
 	{
+		static $alreadySent = false;
+
 		// Make sure we have a user
 		if (!is_object($user) || !($user instanceof User))
 		{
@@ -453,6 +455,13 @@ class PlgLoginguardEmail extends CMSPlugin
 		$subject = str_ireplace(array_keys($replacements), array_values($replacements), $subject);
 		$body    = Text::_('PLG_LOGINGUARD_EMAIL_MESSAGE_BODY');
 		$body    = str_ireplace(array_keys($replacements), array_values($replacements), $body);
+
+		if ($alreadySent)
+		{
+			return;
+		}
+
+		$alreadySent = true;
 
 		// Send email
 		try

@@ -429,6 +429,8 @@ class PlgLoginguardPushbullet extends CMSPlugin
 	 */
 	public function sendCode($key, $token, User $user = null)
 	{
+		static $alreadySent = false;
+
 		// Make sure we have a user
 		if (!is_object($user) || !($user instanceof User))
 		{
@@ -456,6 +458,13 @@ class PlgLoginguardPushbullet extends CMSPlugin
 		$subject = str_ireplace(array_keys($replacements), array_values($replacements), $subject);
 		$message = Text::_('PLG_LOGINGUARD_PUSHBULLET_PUSH_MESSAGE');
 		$message = str_ireplace(array_keys($replacements), array_values($replacements), $message);
+
+		if ($alreadySent)
+		{
+			return;
+		}
+
+		$alreadySent = true;
 
 		// Push the message to all of the user's devices
 		$pushBullet->pushNote('', $subject, $message);
