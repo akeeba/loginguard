@@ -733,7 +733,7 @@ class PlgSystemLoginguard extends CMSPlugin
 	 *
 	 * @return  boolean
 	 *
-	 * @since   3.9.0
+	 * @since   5.0.0
 	 */
 	private function isUserConsented(int $userId): bool
 	{
