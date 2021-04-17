@@ -14,16 +14,14 @@ defined('_JEXEC') || die;
 $js = <<< JS
 ;; // Defense against broken scripts
 
-akeeba.Loader.add(['akeeba.System'], function(){
-    akeeba.System.documentReady(function() {
-		document.getElementById('loginguard-u2f-missing').style.display = 'none';        
+window.addEventListener("DOMContentLoaded", function (event) {
+	document.getElementById('loginguard-u2f-missing').style.display = 'none';        
 
-		if (typeof(window.u2f) == 'undefined')
-		{
-			document.getElementById('loginguard-u2f-missing').style.display = 'block';
-			document.getElementById('loginguard-u2f-controls').style.display = 'none';
-		}
-    });
+	if (typeof(window.u2f) == 'undefined')
+	{
+		document.getElementById('loginguard-u2f-missing').style.display = 'block';
+		document.getElementById('loginguard-u2f-controls').style.display = 'none';
+	}    
 });
 
 JS;
@@ -32,7 +30,7 @@ Factory::getDocument()->addScriptDeclaration($js);
 
 ?>
 <div id="loginguard-u2f-missing">
-	<div class="alert alert-error">
+	<div class="alert alert-danger">
 		<h4>
 			<?= Text::_('PLG_LOGINGUARD_U2F_ERR_NOTAVAILABLE_HEAD'); ?>
 		</h4>

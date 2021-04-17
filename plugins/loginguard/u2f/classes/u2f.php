@@ -29,6 +29,9 @@
 
 namespace u2flib_server;
 
+// Prevent direct access
+defined('_JEXEC') || die;
+
 /** Constant for the version of the u2f protocol */
 const U2F_VERSION = "U2F_V2";
 

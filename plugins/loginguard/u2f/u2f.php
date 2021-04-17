@@ -5,9 +5,15 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Admin\Model\Tfa;
-use FOF40\Container\Container;
-use FOF40\Input\Input;
+// Prevent direct access
+defined('_JEXEC') || die;
+
+JLoader::register('LoginGuardAuthenticator', JPATH_ADMINISTRATOR . '/components/com_loginguard/helpers/authenticator.php');
+
+use Joomla\CMS\Application\ApplicationHelper;
+use Joomla\CMS\Application\CMSApplication;
+use LoginGuardTableTfa as Tfa;
+use Joomla\CMS\Input\Input;
 use Joomla\CMS\Environment\Browser;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
@@ -16,9 +22,8 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
-
-// Prevent direct access
-defined('_JEXEC') || die;
+use u2flib_server\Error as U2FError;
+use u2flib_server\U2F;
 
 /**
  * Akeeba LoginGuard Plugin for Two Step Verification method "Time-based One Time Password"
@@ -31,9 +36,14 @@ class PlgLoginguardU2f extends CMSPlugin
 	/**
 	 * U2F Server Library instance
 	 *
-	 * @var   \u2flib_server\U2F
+	 * @var   U2F
 	 */
 	protected $u2f = null;
+
+	/**
+	 * @var CMSApplication
+	 */
+	protected $app;
 
 	/**
 	 * The TFA method name handled by this plugin
@@ -48,13 +58,6 @@ class PlgLoginguardU2f extends CMSPlugin
 	 * @var   bool
 	 */
 	private $enabled = true;
-
-	/**
-	 * The component's container object
-	 *
-	 * @var   Container
-	 */
-	private $container = null;
 
 	/**
 	 * Constructor. Loads the language files as well.
@@ -107,20 +110,14 @@ class PlgLoginguardU2f extends CMSPlugin
 
 		try
 		{
-			$this->u2f = new u2flib_server\U2F($appId);
+			$this->u2f = new U2F($appId);
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			$this->enabled = false;
 
 			return;
 		}
-
-		// Get a reference to the component's container
-		$this->container = Container::getInstance('com_loginguard');
-
-		// Finally, detect old Google Chrome versions and activate U2F support manually.
-		$this->loadOldChromeJavascript();
 	}
 
 	/**
@@ -162,11 +159,11 @@ class PlgLoginguardU2f extends CMSPlugin
 	 * user to add or modify a TFA method for their user account. If the record does not correspond to your plugin
 	 * return an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Tfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetSetup($record)
+	public function onLoginGuardTfaGetSetup(Tfa $record): array
 	{
 		// Make sure we are enabled
 		if (!$this->enabled)
@@ -226,7 +223,7 @@ class PlgLoginguardU2f extends CMSPlugin
 				'async' => false,
 			]);
 
-			$this->container->platform->addScriptOptions('akeeba.LoginGuard.u2f.regData', $registerData);
+			$this->app->getDocument()->addScriptOptions('akeeba.LoginGuard.u2f.regData', $registerData);
 
 			$layoutPath = PluginHelper::getLayoutPath('loginguard', 'u2f', 'register');
 			ob_start();
@@ -242,7 +239,7 @@ class PlgLoginguardU2f extends CMSPlugin
 			Text::script('PLG_LOGINGUARD_U2F_ERR_JS_TIMEOUT');
 
 			// Save the U2F request to the session
-			$this->container->platform->setSessionVar('u2f.request', $u2fRegData, 'com_loginguard');
+			$this->app->getSession()->set('com_loginguard.u2f.request', $u2fRegData);
 
 			// Special button handling
 			$submitClass = "loginguard_u2f_setup";
@@ -293,14 +290,13 @@ class PlgLoginguardU2f extends CMSPlugin
 	 * message of the exception will be displayed to the user. If the record does not correspond to your plugin return
 	 * an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
-	 * @param   Input     $input   The user input you are going to take into account.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Input               $input   The user input you are going to take into account.
 	 *
 	 * @return  array  The configuration data to save to the database
 	 *
-	 * @throws  RuntimeException  In case the validation fails
 	 */
-	public function onLoginGuardTfaSaveSetup($record, Input $input)
+	public function onLoginGuardTfaSaveSetup(Tfa $record, Input $input): array
 	{
 		// Make sure we are enabled
 		if (!$this->enabled)
@@ -322,9 +318,11 @@ class PlgLoginguardU2f extends CMSPlugin
 			$options['registrations'] = [];
 		}
 
+		$session = $this->app->getSession();
+
 		// load the registration request from the session
-		$u2fRegData = $this->container->platform->getSessionVar('u2f.request', null, 'com_loginguard');
-		$this->container->platform->setSessionVar('u2f.request', null, 'com_loginguard');
+		$u2fRegData = $session->get('com_loginguard.u2f.request', null);
+		$session->set('com_loginguard.u2f.request', null);
 		$registrationRequest = json_decode($u2fRegData);
 
 		// Load the registration response from the input
@@ -348,7 +346,7 @@ class PlgLoginguardU2f extends CMSPlugin
 		{
 			$registration = $this->u2f->doRegister($registrationRequest[0], $registerResponse);
 		}
-		catch (\u2flib_server\Error $err)
+		catch (U2FError $err)
 		{
 			throw new RuntimeException($err->getMessage(), 403);
 		}
@@ -364,11 +362,11 @@ class PlgLoginguardU2f extends CMSPlugin
 	 * Returns the information which allows LoginGuard to render the captive TFA page. This is the page which appears
 	 * right after you log in and asks you to validate your login with TFA.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Tfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive($record)
+	public function onLoginGuardTfaCaptive(Tfa $record): array
 	{
 		// Make sure we are enabled
 		if (!$this->enabled)
@@ -383,10 +381,14 @@ class PlgLoginguardU2f extends CMSPlugin
 		}
 
 		// Get the media version
-		$mediaVersion = Container::getInstance('com_loginguard')->mediaVersion;
+		JLoader::register('LoginGuardHelperVersion', JPATH_SITE . '/components/com_loginguard/helpers/version.php');
+		$mediaVersion = ApplicationHelper::getHash(LoginGuardHelperVersion::component('com_loginguard'));
+
+		$session = $this->app->getSession();
 
 		try
-		{// Load the options from the record (if any), or from the entire method if the allowEntryBatching flag is set.
+		{
+			// Load the options from the record (if any), or from the entire method if the allowEntryBatching flag is set.
 			$registrations = $this->getRegistrations($record);
 			/**
 			 * The following code looks stupid. An explanation is in order.
@@ -418,10 +420,9 @@ class PlgLoginguardU2f extends CMSPlugin
 			 * That was fun to debug - for "poke your eyes with a rusty fork" values of fun.
 			 */
 			$u2fAuthData     = $this->u2f->getAuthenticateData($registrations);
-			$u2fAuthData     = $this->container->platform->getSessionVar('u2f.authentication', base64_encode(serialize($u2fAuthData)), 'com_loginguard');
+			$u2fAuthData     = $session->get('com_loginguard.u2f.authentication', base64_encode(serialize($u2fAuthData)));
 			$u2fAuthData     = unserialize(base64_decode($u2fAuthData));
-			$u2fAuthDataJSON = json_encode($u2fAuthData);
-			$this->container->platform->setSessionVar('u2f.authentication', base64_encode(serialize($u2fAuthData)), 'com_loginguard');
+			$session->set('com_loginguard.u2f.authentication', base64_encode(serialize($u2fAuthData)));
 		}
 		catch (Exception $e)
 		{
@@ -460,27 +461,33 @@ class PlgLoginguardU2f extends CMSPlugin
 		Text::script('PLG_LOGINGUARD_U2F_ERR_JS_INELIGIBLE_SIGN');
 		Text::script('PLG_LOGINGUARD_U2F_ERR_JS_TIMEOUT');
 
-		$this->container->platform->addScriptOptions('akeeba.LoginGuard.u2f.authData', $u2fAuthData);
+		$this->app->getDocument()->addScriptOptions('akeeba.LoginGuard.u2f.authData', $u2fAuthData);
 
 		$js = <<< JS
-;; // Defense against broken scripts
+ // Defense against broken scripts
 
 function akeebaLoginGuardU2FOnClick(e)
 {
     e.preventDefault();
     
-    document.getElementById('loginguard-u2f-button').style.display = 'none';
+    document.getElementById('loginguard-captive-button-submit').style.disabled = 'disabled';
     akeeba.LoginGuard.u2f.validate();
 	    
 	return false;
 }
 
-akeeba.Loader.add(['akeeba.LoginGuard', 'akeeba.System'], function() {
-    akeeba.System.addEventListener('loginguard-captive-button-submit', 'click', akeebaLoginGuardU2FOnClick);
+window.addEventListener('DOMContentLoaded', function (event) {
+    document.getElementById('loginguard-captive-button-submit').addEventListener('click', akeebaLoginGuardU2FOnClick);
     
-    akeeba.System.documentReady(function() {
-        akeeba.System.triggerEvent('loginguard-captive-button-submit', 'click');
-    });
+    var elSubmit = document.getElementById('loginguard-captive-button-submit');
+    
+    if (typeof elSubmit.click === 'function') {
+        elSubmit.click()
+    } else {
+        var newEvent = document.createEvent("Event");
+    	newEvent.initEvent('click', true, true);
+    	elSubmit.dispatchEvent(newEvent);
+    }
 });
 
 JS;
@@ -527,7 +534,7 @@ JS;
 	 *
 	 * @return  bool
 	 */
-	public function onLoginGuardTfaValidate(Tfa $record, User $user, $code)
+	public function onLoginGuardTfaValidate(Tfa $record, User $user, string $code): bool
 	{
 		// Make sure we are enabled
 		if (!$this->enabled)
@@ -559,8 +566,10 @@ JS;
 			return false;
 		}
 
-		$authenticationRequest = $this->container->platform->getSessionVar('u2f.authentication', null, 'com_loginguard');
-		$this->container->platform->setSessionVar('u2f.authentication', null, 'com_loginguard');
+		$session = $this->app->getSession();
+
+		$authenticationRequest = $session->get('com_loginguard.u2f.authentication', null);
+		$session->set('com_loginguard.u2f.authentication', null);
 
 		if (empty($authenticationRequest))
 		{
@@ -603,8 +612,7 @@ JS;
 			'options' => json_encode(['registrations' => [$registration]]),
 		];
 
-		$container = Container::getInstance('com_loginguard');
-		$container->platform->runPlugins('onLoginGuardBeforeSaveRecord', [&$update]);
+		$this->app->triggerEvent('onLoginGuardBeforeSaveRecord', [&$update]);
 
 		$db = Factory::getDbo();
 		$db->updateObject('#__loginguard_tfa', $update, ['id']);
@@ -615,7 +623,7 @@ JS;
 	/**
 	 * Decodes the options from a #__loginguard_tfa record into an options object.
 	 *
-	 * @param   stdClass|string  $record  The record object or just the JSON-encoded options
+	 * @param   Tfa|string  $record  The record object or just the JSON-encoded options
 	 *
 	 * @return  array
 	 */
@@ -689,38 +697,6 @@ JS;
 	}
 
 	/**
-	 * Old Google Chrome versions (38, 39 and 40) required a special extension to enable support for U2F. This extension
-	 * would only load by default the U2F support on Google sites. Third party sites needed to load the extension's JS
-	 * file directly. This method detects Google Chrome 38, 39 and 40 and loads the extension Javascript to activate U2F
-	 * support. On newer versions of Google Chrome and browsers made by other vendors this method takes no action. U2F
-	 * is supported transparently either natively or through an add-on.
-	 *
-	 * NB: If you're still using a browser from late 2013 to late 2014 then being able to use a U2F security key is
-	 *     probably the least of your worries. I wouldn't run such an old browser even at gunpoint!
-	 *
-	 * @see  http://stackoverflow.com/questions/27158182/u2f-support-without-the-u2f-chrome-extension
-	 *
-	 * @return  void
-	 */
-	private function loadOldChromeJavascript()
-	{
-		if (!class_exists('JBrowser'))
-		{
-			JLoader::import('joomla.environment.browser');
-		}
-
-		$jBrowser       = Browser::getInstance();
-		$browserMake    = $jBrowser->getBrowser() == 'chrome';
-		$browserVersion = $jBrowser->getVersion();
-		$isOldChrome    = ($browserMake) && version_compare($browserVersion, '38.0', 'ge') && version_compare($browserVersion, '41.0', 'lt');
-
-		if ($isOldChrome)
-		{
-			Factory::getDocument()->addScript('chrome-extension://pfboblefjcgdjicmnffhdgionmgcdmne/u2f-api.js');
-		}
-	}
-
-	/**
 	 * Get all security key registrations for the specified user
 	 *
 	 * @param   int  $user_id  The user ID to look for. Leave empty for the current user.
@@ -736,12 +712,13 @@ JS;
 
 		$return = [];
 
-		$container = Container::getInstance('com_loginguard');
-		/** @var Tfa $tfaModel */
-		$tfaModel = $container->factory->model('Tfa')->tmpInstance();
-		$results  = $tfaModel->user_id($user_id)->method('u2f')->get(true);
+		JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
+		$results = LoginGuardHelperTfa::getUserTfaRecords($user_id);
+		$results = array_filter($results, function($rec) {
+			return $rec->method === 'u2f';
+		});
 
-		if ($results->count() < 1)
+		if (count($results) < 1)
 		{
 			return $return;
 		}
@@ -766,11 +743,11 @@ JS;
 	 * the key registrations for the given record. If the allowEntryBatching flag is 1 (Yes) we return the combined key
 	 * registrations for all security key records of the user ID found in the $record object.
 	 *
-	 * @param   stdClass  $record  The LoginGuard record
+	 * @param   Tfa  $record  The LoginGuard record
 	 *
 	 * @return  array  Security key registrations for use by the U2F library
 	 */
-	private function getRegistrations($record)
+	private function getRegistrations(Tfa $record)
 	{
 		$options = $this->_decodeRecordOptions($record);
 
@@ -778,10 +755,11 @@ JS;
 
 		try
 		{
-			$container = Container::getInstance('com_loginguard');
-			/** @var Tfa $tfaModel */
-			$tfaModel = $container->factory->model('Tfa')->tmpInstance();
-			$records  = $tfaModel->user_id($record->user_id)->method($record->method)->get(true);
+			JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
+			$records = LoginGuardHelperTfa::getUserTfaRecords($record->user_id);
+			$records = array_filter($records, function($rec) use ($record) {
+				return $rec->method === $record->method;
+			});
 		}
 		catch (Exception $e)
 		{
@@ -789,8 +767,6 @@ JS;
 		}
 
 		// Loop all records, stop if at least one matches
-		$container = Container::getInstance('com_loginguard');
-
 		/** @var Tfa $aRecord */
 		foreach ($records as $aRecord)
 		{
