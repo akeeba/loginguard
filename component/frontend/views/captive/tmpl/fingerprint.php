@@ -32,8 +32,16 @@ if (!is_null($this->browserId) || !$session->get('com_loginguard.browserIdCodeLo
  *   https://cdnjs.cloudflare.com/ajax/libs/murmurhash3js/3.0.1/murmurHash3js.js
  */
 //
-HTMLHelper::_('script', 'com_loginguard/magicthingie.min.js', [], ['defer' => true]);
-HTMLHelper::_('script', 'com_loginguard/security.js', [], ['defer' => true]);
+HTMLHelper::_('script', 'com_loginguard/magicthingie.min.js', [
+	'version'     => 'auto',
+	'relative'    => true,
+	'detectDebug' => false,
+], ['defer' => true]);
+HTMLHelper::_('script', 'com_loginguard/security.min.js', [
+	'version'     => 'auto',
+	'relative'    => true,
+	'detectDebug' => false,
+], ['defer' => true]);
 
 $js = <<< JS
 ; // Fix broken third party Javascript...
@@ -43,32 +51,35 @@ window.addEventListener("DOMContentLoaded", function() {
 
 JS;
 
-$this->document->addScript($js);
+$this->document->addScriptDeclaration($js);
 
 ?>
-<div class="akeeba-panel--info">
-	<h2>
-		<?= Text::_('COM_LOGINGUARD_HEAD_FINGERPRINTING'); ?>
-	</h2>
-	<p id="loginguard-captive-fingeprint-info" style="display: none">
-		<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_MESSAGE'); ?>
-	</p>
+<div class="well card">
+	<div class="card-header">
+		<h2>
+			<?= Text::_('COM_LOGINGUARD_HEAD_FINGERPRINTING'); ?>
+		</h2>
+	</div>
+	<div class="card-body">
+		<p id="loginguard-captive-fingeprint-info" style="display: none">
+			<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_MESSAGE'); ?>
+		</p>
+		<form action="<?= Route::_('index.php?option=com_loginguard&view=Captive') ?>"
+			  id="akeebaLoginguardForm"
+			  method="post">
+			<?= HTMLHelper::_('form.token') ?>
+			<input type="hidden" id="akeebaLoginguardFormBrowserId" name="browserId" value="">
 
-	<form action="<?= Route::_('index.php?option=com_loginguard&view=Captive') ?>"
-		  id="akeebaLoginguardForm"
-		  method="post">
-		<?= HTMLHelper::_('form.token') ?>
-		<input type="hidden" id="akeebaLoginguardFormBrowserId" name="browserId" value="">
+			<noscript>
+				<h3>
+					<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_NOSCRIPT_HEAD') ?>
+				</h3>
+				<p>
+					<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_NOSCRIPT_BODY') ?>
+				</p>
 
-		<noscript>
-			<h3>
-				<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_NOSCRIPT_HEAD') ?>
-			</h3>
-			<p>
-				<?= Text::_('COM_LOGINGUARD_LBL_FINGERPRINTING_NOSCRIPT_BODY') ?>
-			</p>
-
-			<input type="submit">
-		</noscript>
-	</form>
+				<input type="submit">
+			</noscript>
+		</form>
+	</div>
 </div>
