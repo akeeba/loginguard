@@ -69,9 +69,9 @@ class PlgLoginguardEmail extends CMSPlugin
 	/**
 	 * Gets the identity of this TFA method
 	 *
-	 * @return  array|false
+	 * @return  array
 	 */
-	public function onLoginGuardTfaGetMethod()
+	public function onLoginGuardTfaGetMethod(): array
 	{
 		$helpURL = $this->params->get('helpurl', 'https://github.com/akeeba/loginguard/wiki/Email');
 
@@ -98,11 +98,11 @@ class PlgLoginguardEmail extends CMSPlugin
 	 * user to add or modify a TFA method for their user account. If the record does not correspond to your plugin
 	 * return an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetSetup($record)
+	public function onLoginGuardTfaGetSetup(LoginGuardTableTfa $record): array
 	{
 		$helpURL = $this->params->get('helpurl', 'https://github.com/akeeba/loginguard/wiki/Email');
 
@@ -135,7 +135,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// Send an email message with a new code and ask the user to enter it.
 		$user = Factory::getUser($record->user_id);
-		$this->sendCode($key, $user, self::SECRET_KEY_LENGTH);
+		$this->sendCode($key, $user);
 
 		return [
 			// Default title if you are setting up this TFA method for the first time
@@ -179,14 +179,12 @@ class PlgLoginguardEmail extends CMSPlugin
 	 * message of the exception will be displayed to the user. If the record does not correspond to your plugin return
 	 * an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
-	 * @param   Input     $input   The user input you are going to take into account.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Input               $input   The user input you are going to take into account.
 	 *
 	 * @return  array  The configuration data to save to the database
-	 *
-	 * @throws  RuntimeException  In case the validation fails
 	 */
-	public function onLoginGuardTfaSaveSetup($record, Input $input)
+	public function onLoginGuardTfaSaveSetup(LoginGuardTableTfa $record, Input $input): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -197,7 +195,6 @@ class PlgLoginguardEmail extends CMSPlugin
 		// Load the options from the record (if any)
 		$options = $this->_decodeRecordOptions($record);
 		$key     = $options['key'] ?? '';
-		$length  = $options['length'] ?? self::SECRET_KEY_LENGTH;
 		$session = $this->app->getSession();
 
 		// If there is no key in the options fetch one from the session
@@ -225,7 +222,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// In any other case validate the submitted code
 		$timeStep = min(max((int) $this->params->get('timestep', 120), 30), 900);
-		$totp     = new Totp($timeStep, self::CODE_LENGTH, $length);
+		$totp     = new Totp($timeStep, self::CODE_LENGTH, self::SECRET_KEY_LENGTH);
 		$isValid  = $totp->checkCode((string) $key, (string) $code);
 
 		if (!$isValid)
@@ -238,8 +235,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// Return the configuration to be serialized
 		return [
-			'key'    => $key,
-			'length' => $length,
+			'key' => $key,
 		];
 	}
 
@@ -251,7 +247,7 @@ class PlgLoginguardEmail extends CMSPlugin
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive(LoginGuardTableTfa $record)
+	public function onLoginGuardTfaCaptive(LoginGuardTableTfa $record): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -262,7 +258,6 @@ class PlgLoginguardEmail extends CMSPlugin
 		// Load the options from the record (if any)
 		$options = $this->_decodeRecordOptions($record);
 		$key     = $options['key'] ?? '';
-		$length  = $options['length'] ?? 10;
 		$helpURL = $this->params->get('helpurl', 'https://github.com/akeeba/loginguard/wiki/Email');
 
 		// Send an email message with a new code and ask the user to enter it.
@@ -270,7 +265,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		try
 		{
-			$this->sendCode($key, $user, $length);
+			$this->sendCode($key, $user);
 		}
 		catch (Exception $e)
 		{
@@ -307,7 +302,7 @@ class PlgLoginguardEmail extends CMSPlugin
 	 *
 	 * @return  bool
 	 */
-	public function onLoginGuardTfaValidate(LoginGuardTableTfa $record, User $user, $code)
+	public function onLoginGuardTfaValidate(LoginGuardTableTfa $record, User $user, string $code): bool
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -324,8 +319,6 @@ class PlgLoginguardEmail extends CMSPlugin
 		// Load the options from the record (if any)
 		$options = $this->_decodeRecordOptions($record);
 		$key     = $options['key'] ?? '';
-		// Backwards compatibility with LoginGuard 1 through 4
-		$length = $options['length'] ?? 10;
 
 		// If there is no key in the options throw an error
 		if (empty($key))
@@ -335,7 +328,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// Check the TFA code for validity
 		$timeStep = min(max((int) $this->params->get('timestep', 120), 30), 900);
-		$totp     = new Totp($timeStep, self::CODE_LENGTH, $length);
+		$totp     = new Totp($timeStep, self::CODE_LENGTH, self::SECRET_KEY_LENGTH);
 
 		return $totp->checkCode((string) $key, (string) $code);
 	}
@@ -402,8 +395,7 @@ class PlgLoginguardEmail extends CMSPlugin
 				'method'  => 'email',
 				'title'   => Text::_('PLG_LOGINGUARD_EMAIL_LBL_DISPLAYEDAS'),
 				'options' => [
-					'key'    => ($totp)->generateSecret(),
-					'length' => self::SECRET_KEY_LENGTH,
+					'key' => ($totp)->generateSecret(),
 				],
 				'default' => 0,
 			]);
@@ -424,7 +416,7 @@ class PlgLoginguardEmail extends CMSPlugin
 	 *
 	 * @throws  LoginGuardPushbulletApiException  If something goes wrong
 	 */
-	public function sendCode($key, User $user = null, int $secretLength = self::SECRET_KEY_LENGTH)
+	public function sendCode(string $key, User $user = null)
 	{
 		static $alreadySent = false;
 
@@ -436,7 +428,7 @@ class PlgLoginguardEmail extends CMSPlugin
 
 		// Get the API objects
 		$timeStep = min(max((int) $this->params->get('timestep', 120), 30), 900);
-		$totp     = new Totp($timeStep, self::CODE_LENGTH, $secretLength);
+		$totp     = new Totp($timeStep, self::CODE_LENGTH, self::SECRET_KEY_LENGTH);
 
 		// Create the list of variable replacements
 		$code = $totp->getCode($key);
@@ -485,11 +477,10 @@ class PlgLoginguardEmail extends CMSPlugin
 	 *
 	 * @return  array
 	 */
-	private function _decodeRecordOptions(LoginGuardTableTfa $record)
+	private function _decodeRecordOptions(LoginGuardTableTfa $record): array
 	{
 		$options = [
-			'key'    => '',
-			'length' => 10,
+			'key' => '',
 		];
 
 		if (!empty($record->options))
