@@ -1,4 +1,9 @@
 <?php die(); ?>
+Akeeba LoginGuard 5.0.0
+================================================================================
+~ Rewritten with core Joomla MVC
++ Added support for Joomla Privacy Suite in Joomla 4
+
 Akeeba LoginGuard 4.0.1
 ================================================================================
 ~ Converted all tables to InnoDB for better performance

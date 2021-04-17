@@ -6,9 +6,11 @@
  */
 
 use Joomla\CMS\Application\CliApplication;
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
@@ -29,6 +31,22 @@ class PlgSystemLoginguard extends CMSPlugin
 	 * @var   bool
 	 */
 	public $enabled = true;
+
+	/**
+	 * Application object.
+	 *
+	 * @var    CMSApplication
+	 * @since  5.0.0
+	 */
+	protected $app;
+
+	/**
+	 * Database object.
+	 *
+	 * @var    JDatabaseDriver
+	 * @since  5.0.0
+	 */
+	protected $db;
 
 	/**
 	 * User groups for which Two Step Verification is never applied
@@ -99,22 +117,24 @@ class PlgSystemLoginguard extends CMSPlugin
 	 * configurable exceptions since they do not know or care about third party extensions -- even when it's the same
 	 * extensions they copied code from.
 	 *
-	 * Since fixing Joomla's code is not an option we'll have to work around it based on our knowledge of real world
-	 * Joomla usage and how the beast truly works under the hood. It really helps that yours truly was the guy who
-	 * refactored the plugin system to use proper events for Joomla! 4 AND the person who invented the captive login
-	 * code pattern for Joomla :)
+	 * On Joomla 3 we can snuff out the onAfterRoute event handler for the privacy plugin. This is what we do here.
 	 *
-	 * In this episode of Crazy Stuff Nicholas Has To Do To Get Basic Functionality Working we will explore how to use
-	 * PHP Reflection to detect the offending Joomla! Privacy Consent system plugin and snuff it out before it can issue
-	 * its redirections. I invented captive login, I know how to work around it.
+	 * On Joomla 4 all event handlers are Closure objects which cannot be inspected with Reflection (because screw you,
+	 * PHP developer, that's why!) so we have to instead disable the redirection IF we are on Joomla 4 AND the privacy
+	 * plugin is enabled AND the user hasn't consented yet.
 	 *
 	 * @throws  Exception
 	 * @since   3.0.3
 	 */
 	public function onAfterInitialise()
 	{
-		$app    = Factory::getApplication();
-		$option = $app->input->getCmd('option', null);
+		// This onyl works on Joomla 3
+		if (version_compare(JVERSION, '3.9999.9999', 'ge'))
+		{
+			return;
+		}
+
+		$option = $this->app->input->getCmd('option', null);
 
 		/**
 		 * If we're going to need to perform a redirection and Joomla's privacy consent is also enabled we will snuff it
@@ -147,23 +167,41 @@ class PlgSystemLoginguard extends CMSPlugin
 		// Make sure we are logged in
 		try
 		{
-			$app = Factory::getApplication();
-
 			// Joomla! 3: make sure the user identity is loaded. This MUST NOT be called in Joomla! 4, though.
 			if (version_compare(JVERSION, '3.99999.99999', 'lt'))
 			{
-				$app->loadIdentity();
+				$this->app->loadIdentity();
 			}
 
-			$user = $app->getIdentity();
+			$user = $this->app->getIdentity();
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			// This would happen if we are in CLI or under an old Joomla! version. Either case is not supported.
 			return;
 		}
 
-		$session = $app->getSession();
+		/**
+		 * If you have enabled Joomla's Privacy Consent you'd end up with an infinite redirection loop. That's because
+		 * Joomla! did a partial copy of my original research code on captive Joomla! logins. They did not implement
+		 * configurable exceptions since they do not know or care about third party extensions -- even when it's the
+		 * same extensions they copied code from.
+		 *
+		 * While on Joomla 3 we can snuff out the onAfterRoute event handler for the privacy plugin, this is not
+		 * possible on Joomla 4 because all event handlers are Closure objects which cannot be inspected with Reflection
+		 * (because screw you, PHP developer, that's why!) so we have to instead disable the redirection IF we are on
+		 * Joomla 4 AND the privacy plugin is enabled AND the user hasn't consented yet.
+		 */
+		if (
+			version_compare(JVERSION, '3.999.999', 'gt')
+			&& PluginHelper::isEnabled('system', 'privacyconsent')
+			&& !$this->isUserConsented((int) $user->id)
+		)
+		{
+			return;
+		}
+
+		$session = $this->app->getSession();
 
 		// We only kick in when the user has actually set up TFA or must definitely enable TFA.
 		$needsTFA     = $this->needsTFA($user);
@@ -184,7 +222,7 @@ class PlgSystemLoginguard extends CMSPlugin
 
 			// Redirect
 			$url = Route::_('index.php?option=com_loginguard&view=captive', false);
-			$app->redirect($url, 307);
+			$this->app->redirect($url, 307);
 
 			return;
 		}
@@ -225,16 +263,7 @@ class PlgSystemLoginguard extends CMSPlugin
 	 */
 	public function onUserAfterLogin($options)
 	{
-		try
-		{
-			$app = Factory::getApplication();
-		}
-		catch (Exception $e)
-		{
-			return;
-		}
-
-		$session = $app->getSession();
+		$session = $this->app->getSession();
 
 		// Always reset the browser ID to avoid session poisoning attacks
 		$session->set('com_loginguard.browserId', null);
@@ -286,11 +315,10 @@ class PlgSystemLoginguard extends CMSPlugin
 			}
 			else
 			{
-				$app   = Factory::getApplication();
-				$isCLI = $app instanceof \Exception || $app instanceof CliApplication;
+				$isCLI = $this->app instanceof Exception || $this->app instanceof CliApplication;
 			}
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			$isCLI = true;
 		}
@@ -393,18 +421,8 @@ class PlgSystemLoginguard extends CMSPlugin
 	 */
 	private function redirectToTSVSetup()
 	{
-		try
-		{
-			$app = Factory::getApplication();
-		}
-		catch (\Exception $e)
-		{
-			// This would happen if we are in CLI or under an old Joomla! version. Either case is not supported.
-			return;
-		}
-
 		// If we are in a LoginGuard page do not redirect
-		$option = strtolower($app->input->getCmd('option'));
+		$option = strtolower($this->app->input->getCmd('option'));
 
 		if ($option == 'com_loginguard')
 		{
@@ -413,7 +431,7 @@ class PlgSystemLoginguard extends CMSPlugin
 
 		// Otherwise redirect to the LoginGuard TSV setup page after enqueueing a message
 		$url = Route::_('index.php?option=com_loginguard&view=Methods');
-		$app->redirect($url, 307);
+		$this->app->redirect($url, 307);
 	}
 
 	/**
@@ -433,16 +451,7 @@ class PlgSystemLoginguard extends CMSPlugin
 			return false;
 		}
 
-		try
-		{
-			$app = Factory::getApplication();
-		}
-		catch (Exception $e)
-		{
-			return false;
-		}
-
-		$session = $app->getSession();
+		$session = $this->app->getSession();
 
 		/**
 		 * We only kick in if the session flag is not set AND the user is not flagged for monitoring of their TSV status
@@ -462,17 +471,15 @@ class PlgSystemLoginguard extends CMSPlugin
 		// Make sure we are logged in
 		try
 		{
-			$app = Factory::getApplication();
-
 			// Joomla! 3: make sure the user identity is loaded. This MUST NOT be called in Joomla! 4, though.
 			if (version_compare(JVERSION, '3.99999.99999', 'lt'))
 			{
-				$app->loadIdentity();
+				$this->app->loadIdentity();
 			}
 
-			$user = $app->getIdentity() ?: Factory::getUser();
+			$user = $this->app->getIdentity() ?: Factory::getUser();
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			// This would happen if we are in CLI or under an old Joomla! version. Either case is not supported.
 			return false;
@@ -539,11 +546,11 @@ class PlgSystemLoginguard extends CMSPlugin
 
 		// We only kick in if the option and task are not the ones of the captive page
 		$fallbackView = version_compare(JVERSION, '3.999.999', 'ge')
-			? $app->input->getCmd('controller', '')
+			? $this->app->input->getCmd('controller', '')
 			: '';
-		$option       = strtolower($app->input->getCmd('option'));
-		$task         = strtolower($app->input->getCmd('task'));
-		$view         = strtolower($app->input->getCmd('view', $fallbackView));
+		$option       = strtolower($this->app->input->getCmd('option'));
+		$task         = strtolower($this->app->input->getCmd('task'));
+		$view         = strtolower($this->app->input->getCmd('view', $fallbackView));
 
 		if (strpos($task, '.') !== false)
 		{
@@ -555,9 +562,9 @@ class PlgSystemLoginguard extends CMSPlugin
 		if ($option == 'com_loginguard')
 		{
 			// In case someone gets any funny ideas...
-			$app->input->set('tmpl', 'index');
-			$app->input->set('format', 'html');
-			$app->input->set('layout', null);
+			$this->app->input->set('tmpl', 'index');
+			$this->app->input->set('format', 'html');
+			$this->app->input->set('layout', null);
 
 			if (empty($view) && (strpos($task, '.') !== false))
 			{
@@ -621,16 +628,8 @@ class PlgSystemLoginguard extends CMSPlugin
 	 */
 	private function snuffJoomlaPrivacyConsent()
 	{
-		/**
-		 * TODO Handle the case of Joomla 4...
-		 */
-		if (version_compare(JVERSION, '3.9999.9999', 'ge'))
-		{
-			return;
-		}
-
 		// The broken Joomla! consent plugin is not activated
-		if (!class_exists('PlgSystemPrivacyconsent'))
+		if (!PluginHelper::isEnabled('system', 'privacyconsent'))
 		{
 			return;
 		}
@@ -651,7 +650,7 @@ class PlgSystemLoginguard extends CMSPlugin
 				continue;
 			}
 
-			if ($o instanceof \PlgSystemPrivacyconsent)
+			if ($o instanceof PlgSystemPrivacyconsent)
 			{
 				$jConsentObserverId = $id;
 
@@ -725,5 +724,37 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method to check if the given user has consented yet
+	 *
+	 * @param   integer  $userId  ID of uer to check
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.9.0
+	 */
+	private function isUserConsented(int $userId): bool
+	{
+		// Guest user? WTF!
+		if (empty($userId))
+		{
+			return true;
+		}
+
+		$userId = (int) $userId;
+		$db     = $this->db;
+		$query  = $db->getQuery(true);
+
+		$query->select('COUNT(*)')
+			->from($db->quoteName('#__privacy_consents'))
+			->where($db->quoteName('user_id') . ' = :userid')
+			->where($db->quoteName('subject') . ' = ' . $db->quote('PLG_SYSTEM_PRIVACYCONSENT_SUBJECT'))
+			->where($db->quoteName('state') . ' = 1')
+			->bind(':userid', $userId, \Joomla\Database\ParameterType::INTEGER);
+		$db->setQuery($query);
+
+		return (int) $db->loadResult() > 0;
 	}
 }

@@ -1,1 +1,9 @@
+To-do
+========================================================================================================================
+Users view
+
+Bug fixes
+========================================================================================================================
+
+~ Do not ask for TSV if the only active method is backup codes (e.g. after admin has unpublished the previously used plugin)
 # [HIGH] Backup codes not removed after removing the last TSV method
