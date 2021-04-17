@@ -5,17 +5,20 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\LoginGuard\Admin\Model\Tfa;
-use FOF40\Input\Input;
+// Prevent direct access
+defined('_JEXEC') || die;
+
+JLoader::register('LoginGuardAuthenticator', JPATH_ADMINISTRATOR . '/components/com_loginguard/helpers/authenticator.php');
+
+use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Input\Input;
 use Joomla\CMS\Http\HttpFactory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
-
-// Prevent direct access
-defined('_JEXEC') || die;
+use LoginGuardTableTfa as Tfa;
 
 /**
  * Akeeba LoginGuard Plugin for Two Step Verification method "Yubikey"
@@ -25,6 +28,11 @@ defined('_JEXEC') || die;
  */
 class PlgLoginguardYubikey extends CMSPlugin
 {
+	/**
+	 * @var CMSApplication
+	 */
+	protected $app;
+
 	/**
 	 * The TFA method name handled by this plugin
 	 *
@@ -52,7 +60,7 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetMethod()
+	public function onLoginGuardTfaGetMethod(): array
 	{
 		$helpURL = $this->params->get('helpurl', 'https://github.com/akeeba/loginguard/wiki/YubiKey');
 
@@ -80,11 +88,11 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 * Returns the information which allows LoginGuard to render the captive TFA page. This is the page which appears
 	 * right after you log in and asks you to validate your login with TFA.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaCaptive($record)
+	public function onLoginGuardTfaCaptive(Tfa $record)
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -121,11 +129,11 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 * user to add or modify a TFA method for their user account. If the record does not correspond to your plugin
 	 * return an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
 	 *
 	 * @return  array
 	 */
-	public function onLoginGuardTfaGetSetup($record)
+	public function onLoginGuardTfaGetSetup(Tfa $record): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -178,14 +186,13 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 * message of the exception will be displayed to the user. If the record does not correspond to your plugin return
 	 * an empty array.
 	 *
-	 * @param   stdClass  $record  The #__loginguard_tfa record currently selected by the user.
-	 * @param   Input     $input   The user input you are going to take into account.
+	 * @param   LoginGuardTableTfa  $record  The #__loginguard_tfa record currently selected by the user.
+	 * @param   Input               $input   The user input you are going to take into account.
 	 *
 	 * @return  array  The configuration data to save to the database
 	 *
-	 * @throws  RuntimeException  In case the validation fails
 	 */
-	public function onLoginGuardTfaSaveSetup($record, Input $input)
+	public function onLoginGuardTfaSaveSetup(Tfa $record, Input $input): array
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -241,7 +248,7 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 *
 	 * @return  bool
 	 */
-	public function onLoginGuardTfaValidate(Tfa $record, User $user, $code)
+	public function onLoginGuardTfaValidate(Tfa $record, User $user, string $code): bool
 	{
 		// Make sure we are actually meant to handle this method
 		if ($record->method != $this->tfaMethodName)
@@ -257,10 +264,11 @@ class PlgLoginguardYubikey extends CMSPlugin
 
 		try
 		{
-			$container = \FOF40\Container\Container::getInstance('com_loginguard');
-			/** @var Tfa $tfaModel */
-			$tfaModel = $container->factory->model('Tfa')->tmpInstance();
-			$records  = $tfaModel->user_id($record->user_id)->method($record->method)->get(true);
+			JLoader::register('LoginGuardHelperTfa', JPATH_SITE . '/components/com_loginguard/helpers/tfa.php');
+			$records = LoginGuardHelperTfa::getUserTfaRecords($record->user_id);
+			$records = array_filter($records, function ($rec) use ($record) {
+				return $rec->method === $record->method;
+			});
 		}
 		catch (Exception $e)
 		{
@@ -268,8 +276,6 @@ class PlgLoginguardYubikey extends CMSPlugin
 		}
 
 		// Loop all records, stop if at least one matches
-		$container = \FOF40\Container\Container::getInstance('com_loginguard');
-
 		foreach ($records as $aRecord)
 		{
 			if ($this->validateAgainstRecord($aRecord, $code))
@@ -289,14 +295,12 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 *
 	 * @return  boolean  True if it's a valid OTP
 	 */
-	public function validateYubikeyOtp($otp)
+	public function validateYubikeyOtp(string $otp): bool
 	{
 		// Let the user define a client ID and a secret key in the plugin's configuration
-		$clientID  = $this->params->get('client_id', 1);
-		$secretKey = $this->params->get('secret', '');
-
-		$server_queue = $this->params->get('servers', '');
-		$server_queue = trim($server_queue);
+		$clientID     = $this->params->get('client_id', 1);
+		$secretKey    = $this->params->get('secret', '');
+		$server_queue = trim($this->params->get('servers', ''));
 
 		if (!empty($server_queue))
 		{
@@ -449,7 +453,7 @@ class PlgLoginguardYubikey extends CMSPlugin
 	 *
 	 * @return  void
 	 */
-	public function signRequest(Uri $uri, $secret)
+	public function signRequest(Uri $uri, string $secret): void
 	{
 		// Make sure we have an encoding secret
 		$secret = trim($secret);
@@ -532,11 +536,11 @@ class PlgLoginguardYubikey extends CMSPlugin
 	/**
 	 * Decodes the options from a #__loginguard_tfa record into an options object.
 	 *
-	 * @param   stdClass  $record
+	 * @param   LoginGuardTableTfa  $record
 	 *
 	 * @return  array
 	 */
-	private function _decodeRecordOptions($record)
+	private function _decodeRecordOptions(Tfa $record): array
 	{
 		$options = [
 			'id' => '',
@@ -553,12 +557,12 @@ class PlgLoginguardYubikey extends CMSPlugin
 	}
 
 	/**
-	 * @param $record
-	 * @param $code
+	 * @param   LoginGuardTableTfa  $record
+	 * @param   string              $code
 	 *
-	 * @return bool
+	 * @return  bool
 	 */
-	private function validateAgainstRecord($record, $code)
+	private function validateAgainstRecord(Tfa $record, string $code): bool
 	{
 		// Load the options from the record (if any)
 		$options = $this->_decodeRecordOptions($record);
