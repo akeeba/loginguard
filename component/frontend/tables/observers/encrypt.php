@@ -9,9 +9,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Filesystem\File;
-use Joomla\CMS\Table\Observer\AbstractObserver;
 use Joomla\CMS\Table\Table;
-use Joomla\CMS\Table\TableInterface;
 use Joomla\CMS\User\UserHelper;
 
 /**
@@ -72,7 +70,7 @@ class LoginGuardTableObserverEncrypt
 	 *
 	 * @var  int
 	 */
-	private $openSSLOptions = OPENSSL_RAW_DATA;
+	private $openSSLOptions = OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING;
 
 	/**
 	 * The cipher key.
@@ -190,7 +188,7 @@ class LoginGuardTableObserverEncrypt
 	{
 		// After we have finished storing the table we need to decrypt the columns we encrypted onBeforeStore.
 		$fakeResult = true;
-		$this->onAfterLoad($fakeResult, $this->table->getProperties());
+		$this->onAfterLoad($fakeResult);
 	}
 
 	protected function setColumns(array $columns): void
@@ -326,6 +324,11 @@ class LoginGuardTableObserverEncrypt
 		$cipherText = substr($cipherText, $iv_size);
 
 		$decrypted = openssl_decrypt($cipherText, $this->method, $key, $this->openSSLOptions, $iv);
+
+		if ($decrypted === false)
+		{
+			$decrypted = openssl_decrypt($cipherText, $this->method, $key, OPENSSL_RAW_DATA, $iv);
+		}
 
 		// Decrypted data is null byte padded. We have to remove the padding before proceeding.
 		return rtrim($decrypted, "\0");
