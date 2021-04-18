@@ -177,7 +177,7 @@ class LoginGuardModelCaptive extends BaseDatabaseModel
 	 * @return  array  The rendering options
 	 * @since   1.2.0
 	 */
-	public function loadCaptiveRenderOptions(LoginGuardTableTfa $record): array
+	public function loadCaptiveRenderOptions(?LoginGuardTableTfa $record): array
 	{
 		$renderOptions = [
 			'pre_message'        => '',

@@ -121,7 +121,7 @@ class LoginGuardViewCaptive extends BaseHtmlView
 		}
 
 		// If we only have one record there's no point asking the user to select a TFA method
-		if (empty($this->record))
+		if (empty($this->record) && !empty($this->records))
 		{
 			// Default to the first record
 			$this->record = reset($this->records);

@@ -249,6 +249,7 @@ abstract class LoginGuardHelperTfa
 		BaseDatabaseModel::addIncludePath(JPATH_ROOT . '/components/com_loginguard/models', 'LoginGuardModel');
 		Table::addIncludePath(JPATH_ROOT . '/components/com_loginguard/tables');
 
+		// Map all results to Tfa table objects
 		$records = array_map(function ($id) {
 			/** @var LoginGuardTableTfa $record */
 			$record = Table::getInstance('Tfa', 'LoginGuardTable');
@@ -257,8 +258,26 @@ abstract class LoginGuardHelperTfa
 			return $loaded ? $record : null;
 		}, $ids);
 
-		return array_filter($records, function ($record) {
-			return !is_null($record);
+		// Let's remove methods we couldn't decrypt when reading from the database.
+		$hasBackupCodes = false;
+
+		$records = array_filter($records, function ($record) use (&$hasBackupCodes) {
+			$isValid = !is_null($record) && (!empty($record->options));
+
+			if ($isValid && ($record->method === 'backupcodes'))
+			{
+				$hasBackupCodes = true;
+			}
+
+			return $isValid;
 		});
+
+		// If the only method is backup codes it's as good as having no records
+		if ((count($records) === 1) && $hasBackupCodes)
+		{
+			return [];
+		}
+
+		return $records;
 	}
 }
