@@ -12,6 +12,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Table\Observer\AbstractObserver;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\Table\TableInterface;
+use Joomla\Utilities\ArrayHelper;
 
 defined('_JEXEC') || die;
 
@@ -151,6 +152,11 @@ class LoginGuardTableObserverDefault
 
 	public function onAfterDelete($pk)
 	{
+		if (is_array($pk))
+		{
+			$pk = array_shift($pk);
+		}
+
 		if (!isset($this->deleteFlags[$pk]))
 		{
 			return;

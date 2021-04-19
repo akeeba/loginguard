@@ -6,5 +6,4 @@ Action log plugin
 Bug fixes
 ================================================================================
 
-# [HIGH] Backup codes not removed after removing the last TSV method.
 # [MEDIUM] Joomla 4: admin 2SV takes you back to the frontend instead of the backend Control Panel page.
