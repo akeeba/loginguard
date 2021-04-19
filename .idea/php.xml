@@ -2,7 +2,7 @@
 <project version="4">
   <component name="PhpIncludePathManager">
     <include_path>
-      <path value="$PROJECT_DIR$/../../master/joomla4" />
+      <path value="$PROJECT_DIR$/../../master/joomla-cms" />
       <path value="$PROJECT_DIR$/../../dionysopoulos/joomlatypehints/generated_hints" />
       <path value="$PROJECT_DIR$/../fof4/fof" />
       <path value="$PROJECT_DIR$/../fof3/fof" />
@@ -29,6 +29,7 @@
       <path value="$PROJECT_DIR$/component/backend/vendor/psr/log" />
       <path value="$PROJECT_DIR$/component/backend/vendor/psr/http-client" />
       <path value="$PROJECT_DIR$/component/backend/vendor/symfony/process" />
+      <path value="$PROJECT_DIR$/component/backend/vendor/zendframework/zend-diactoros" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />

@@ -70,6 +70,7 @@ class LoginGuardViewWelcome extends BaseHtmlView
 
 		// Show a title and the component's Options button
 		ToolbarHelper::title(JText::_('COM_LOGINGUARD') . ': <small>' . JText::_('COM_LOGINGUARD_HEAD_WELCOME') . '</small>', 'loginguard');
+		ToolbarHelper::link('index.php?option=com_loginguard&view=users', 'COM_LOGINGUARD_HEAD_USERS', 'users');
 		ToolbarHelper::help('', false, 'https://github.com/akeeba/loginguard/wiki');
 		ToolbarHelper::preferences('com_loginguard');
 
