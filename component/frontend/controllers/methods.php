@@ -97,6 +97,8 @@ class LoginGuardControllerMethods extends BaseController
 		$type    = null;
 		$message = null;
 
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodsBeforeDisable', [$user]);
+
 		try
 		{
 			$model->deleteAll($user);
@@ -144,6 +146,8 @@ class LoginGuardControllerMethods extends BaseController
 		{
 			throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
 		}
+
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodsBeforeDontshowthisagain', [$user]);
 
 		/** @var LoginGuardModelMethods $model */
 		$model = $this->getModel('Methods');

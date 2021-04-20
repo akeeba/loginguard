@@ -12,6 +12,7 @@ use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
@@ -142,6 +143,8 @@ class LoginGuardControllerCaptive extends BaseController
 
 		if (empty($record))
 		{
+			Factory::getApplication()->triggerEvent('onComLoginguardCaptiveValidateInvalidMethod');
+
 			throw new RuntimeException(Text::_('COM_LOGINGUARD_ERR_INVALID_METHOD'), 500);
 		}
 
@@ -160,7 +163,7 @@ class LoginGuardControllerCaptive extends BaseController
 			}
 
 			/** @var LoginGuardModelBackupcodes $codesModel */
-			$codesModel = JModelLegacy::getInstance('Backupcodes', 'LoginGuardModel');
+			$codesModel = BaseDatabaseModel::getInstance('Backupcodes', 'LoginGuardModel');
 			$results    = [$codesModel->isBackupCode($code, $user)];
 			/**
 			 * This is required! Do not remove!
@@ -200,6 +203,8 @@ class LoginGuardControllerCaptive extends BaseController
 			$message    = Text::_('COM_LOGINGUARD_ERR_INVALID_CODE');
 			$this->setRedirect($captiveURL, $message, 'error');
 
+			Factory::getApplication()->triggerEvent('onComLoginguardCaptiveValidateFailed', [$record->title]);
+
 			return $this;
 		}
 
@@ -230,6 +235,8 @@ class LoginGuardControllerCaptive extends BaseController
 		}
 
 		$this->setRedirect($return_url);
+
+		Factory::getApplication()->triggerEvent('onComLoginguardCaptiveValidateSuccess', [$record->title]);
 
 		return $this;
 	}

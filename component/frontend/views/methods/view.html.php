@@ -182,6 +182,10 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		}
 
 		// Display the view
-		return parent::display($tpl);
+		$result = parent::display($tpl);
+
+		Factory::getApplication()->triggerEvent('onComLoginGuardViewMethodsAfterDisplay', [$this]);
+
+		return $result;
 	}
 }

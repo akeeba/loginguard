@@ -100,6 +100,8 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 
 		$view->setModel($model, true);
 
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodBeforeAdd', [$user, $method]);
+
 		return $view->display();
 	}
 
@@ -147,6 +149,8 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 
 		$view->setModel($model, true);
 
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodBeforeEdit', [$id, $user]);
+
 		return $view->display();
 	}
 
@@ -192,6 +196,8 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 
 		$this->setRedirect(Route::_($redirectUrl, false));
 
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodAfterRegenbackupcodes');
+
 		return $this;
 	}
 
@@ -229,6 +235,8 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 
 		$type    = null;
 		$message = null;
+
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodBeforeDelete', [$id, $user]);
 
 		try
 		{
@@ -301,6 +309,8 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 		// Ask the plugin to validate the input by calling onLoginGuardTfaSaveSetup
 		$result = [];
 		$input  = Factory::getApplication()->input;
+
+		Factory::getApplication()->triggerEvent('onComLoginguardControllerMethodBeforeSave', [$id, $user]);
 
 		try
 		{

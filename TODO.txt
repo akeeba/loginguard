@@ -3,6 +3,8 @@ To-do
 
 Action log plugin
 
+Pre/post-installation scripts
+
 Bug fixes
 ================================================================================
 
