@@ -79,6 +79,23 @@
 		</languages>
 	</administration>
 
+	<!-- Handle the database installation and updates -->
+	<install>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/mysql/install.sql</file>
+		</sql>
+	</install>
+	<uninstall>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/mysql/uninstall.sql</file>
+		</sql>
+	</uninstall>
+	<update>
+		<schemas>
+			<schemapath type="mysql">sql/mysql/updates</schemapath>
+		</schemas>
+	</update>
+
 	<!-- Installation / uninstallation script file -->
 	<scriptfile>script.com_loginguard.php</scriptfile>
 </extension>
