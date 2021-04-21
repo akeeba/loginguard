@@ -1,4 +1,0 @@
-Bug fixes
-================================================================================
-
-# [MEDIUM] Joomla 4: admin 2SV takes you back to the frontend instead of the backend Control Panel page.

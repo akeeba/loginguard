@@ -221,8 +221,11 @@ class PlgSystemLoginguard extends CMSPlugin
 			}
 
 			// Redirect
-			$url = Route::_('index.php?option=com_loginguard&view=captive', false);
-			$this->app->redirect($url, 307);
+			$captiveUrl = $session->get('com_loginguard.captiveUrl') ?:
+				Route::_('index.php?option=com_loginguard&view=captive', false);
+			$session->set('com_loginguard.captiveUrl', null);
+
+			$this->app->redirect($captiveUrl, 307);
 
 			return;
 		}
@@ -258,6 +261,11 @@ class PlgSystemLoginguard extends CMSPlugin
 	 * Hooks on the Joomla! login event. Detects silent logins and disables the Two Step Verification captive page in
 	 * this case.
 	 *
+	 * Moreover, it will save the redirection URL and the captive URL which is necessary in Joomla 4. You see, in Joomla
+	 * 4 having unified sessions turned on makes the backend login redirect you to the frontend of the site AFTER
+	 * logging in, something which would cause the captive page to appear in the frontend and redirect you to the public
+	 * frontend homepage after successfully passing the Two Step verification process.
+	 *
 	 * @param   array  $options  Passed by Joomla. user: a User object; responseType: string, authentication response
 	 *                           type.
 	 */
@@ -268,6 +276,18 @@ class PlgSystemLoginguard extends CMSPlugin
 		// Always reset the browser ID to avoid session poisoning attacks
 		$session->set('com_loginguard.browserId', null);
 		$session->set('com_loginguard.browserIdCodeLoaded', false);
+
+		// Save the current URL.
+		$return_url = $session->get('com_loginguard.return_url', '') ?:
+			Uri::getInstance()->toString([
+				'scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'fragment',
+			]);
+		$session->set('com_loginguard.return_url', $return_url);
+
+		// Set up the correct captive URL
+		$captiveUrl = $session->get('com_loginguard.captiveUrl') ?:
+			Route::_('index.php?option=com_loginguard&view=captive', false);
+		$session->set('com_loginguard.captiveUrl', $captiveUrl);
 
 		// Should I show 2SV even on silent logins? Default: 1 (yes, show)
 		$switch = $this->params->get('2svonsilent', 1);
@@ -286,7 +306,7 @@ class PlgSystemLoginguard extends CMSPlugin
 			return;
 		}
 
-		// Make sure this is a silent login
+		// Is this a silent login?
 		if (!$this->isSilentLogin($user, $options['responseType']))
 		{
 			return;
