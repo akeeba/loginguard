@@ -268,7 +268,7 @@ class plgUserLoginguard extends CMSPlugin
 		// Is the Remember Me feature enabled?
 		$allowRememberMe = ComponentHelper::getParams('com_loginguard')->get('allow_rememberme', 1);
 
-		if ($allowRememberMe)
+		if ($allowRememberMe != 1)
 		{
 			return true;
 		}
@@ -288,7 +288,7 @@ class plgUserLoginguard extends CMSPlugin
 
 		// Finally, remove the Remember Me cookie
 		BaseDatabaseModel::addIncludePath(JPATH_ROOT . '/components/com_loginguard/models', 'LoginGuardModel');
-		/** @var RememberMe $rememberModel */
+		/** @var LoginGuardModelRememberme $rememberModel */
 		$rememberModel = BaseDatabaseModel::getInstance('Rememberme', 'LoginGuardModel');
 		$rememberModel->setUsername($userName)->removeCookie();
 
