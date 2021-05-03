@@ -1,0 +1,196 @@
+
+Akeeba LoginGuard 4.0.1
+================================================================================
+~ Converted all tables to InnoDB for better performance
+# [MEDIUM] Prevent exceptions thrown by plugins during validation initialisation to prevent access to alternative Two Step Verification options
+# [MEDIUM] WebAuthn failure when the site name is empty
+
+Akeeba LoginGuard 4.0.0
+================================================================================
++ Rewritten using FOF 4
++ Renamed ViewTemplates to tmpl (Joomla 4 convention, with fallback code for Joomla 3)
++ Yes/No options in the component and plugin options now work correctly under Joomla 4.0 beta 7 and later
+
+Akeeba LoginGuard 3.3.7
+================================================================================
++ Now supports controller as alias for view under Joomla 4
+
+Akeeba LoginGuard 3.3.7
+================================================================================
+~ All tables now have a PRIMARY KEY
+# [LOW] The ip and ua columns were not always removed from the #__loginguard_tfa table
+# [HIGH] Cannot use the SMS plugin (throws exception)
+# [HIGH] Cannot register new WebAuthn authenticators
+# [LOW] PHP Notice using JLoader::registerNamespace on Joomla 4
+
+Akeeba LoginGuard 3.3.6
+================================================================================
+- Dropped PHP 7.1 support
+~ Add PHP 8.0 in the list of known PHP versions, recommend PHP 7.4 or later
+# [HIGH] Joomla 4 beta 6 changed how sessions work, breaking Akeeba LoginGuard
+
+Akeeba LoginGuard 3.3.5
+================================================================================
++ Allow changing the code generation time period for Code by Email
+~ Replace zero datetime with nullable datetime (gh-94)
+# [LOW] You can see, but not use, the Methods page as a guest (gh-95)
+
+Akeeba LoginGuard 3.3.4
+================================================================================
++ Option to forcibly enable the Email plugin for everyone (gh-91)
+~ WebAuthn: JavaScript now loads deferred
+~ Remember Me: Remove inline JavaScript
+~ Code refactoring for minimum compatibility with PHP 7.1, Joomla 3.9
+# [MEDIUM] WebAuthn: some Platform and FIDO2 authenticators are ignored unless the user clicks a button first. Changed the UI to require a button press.
+
+Akeeba LoginGuard 3.3.3
+================================================================================
+~ Added passwordless to the Silent login authentication response types
+~ Internals change: Zend Framework is now Laminas, updated dependencies accordingly
+~ Improved unhandled PHP exception error page
+# [MEDIUM] Multiple email / SMS with the second factor code are sent on some sites when these methods are default for a user.
+# [LOW] When CloudFlare CDN went down on August 30, 2020 LoginGuard's TSV Remember Me code got hosed. Self-hosting the whole lot now.
+
+Akeeba LoginGuard 3.3.2
+================================================================================
+# [HIGH] Wrong path to cacert.pem broke the Pushbullet method
+
+Akeeba LoginGuard 3.3.1
+================================================================================
++ LoginGuard will fix and update its database if necessary when you visit its backend page as a Super User
++ Joomla 4 compatible
+~ Minimum requirement: Joomla 3.9
+~ Internal changes to use proper-cased views everywhere instead of legacy task=viewname.taskname when building public URLs
+~ Do not go through browser fingerprinting if the Remember Me feature is disabled at the component level.
+~ HTML5 number field for 6 digit codes (Email, PushBullet, SMS, Time-based One Time Password)
+~ Now using WebAuthn library version 2, required for operating inside Joomla 4
+# [HIGH] Unable to change 2SV method on Chrome when caching is enabled either at the Joomla or web server level.
+# [MEDIUM] Joomla 4 throws an exception when mail is disabled and you try to send an email
+# [LOW] Unhandled exception page was incompatible with Joomla 4
+
+Akeeba LoginGuard 3.3.0
+================================================================================
++ Browser fingerprinting to reduce 2SV prompts
+# [LOW] Dark Mode “Auto” setting ended up being the same as “Always”
+# [LOW] U2F and WebAuthn do not show a verification button if your browser / hardware cancels the verification [gh-80]
+# [LOW] Missing file css/dark.min.css from the media folder
+# [HIGH] Cannot access backend if you have TFA enabled and you're not a Super User (or have the core.manage privilege for LoginGuard)
+
+Akeeba LoginGuard 3.2.1
+================================================================================
++ Support for Dark Mode
++ Common PHP version warning scripts
+- We do not need the GeoIP plugin integration since 3.0.0; related functionality has been removed
+# [LOW] You could see an inactive (therefore confusing) 2SV method registration page while not logged in.
+# [MEDIUM] Joomla's forced password reset makes LoginGuard go into an infinite redirection loop (gh-76)
+
+Akeeba LoginGuard 3.2.0
+================================================================================
++ Joomla User Actions Log integration
+! Security: Guest users can view a list of Two Step Verification method name for all users (but NOT their settings; 2SV security was NOT compromised).
+
+Akeeba LoginGuard 3.1.1
+================================================================================
+# [HIGH] User Profile fields not displayed correctly when using an Edit Profile menu item
+
+Akeeba LoginGuard 3.1.0
+================================================================================
++ Option to disable Two Step Verification on silent login (e.g. when Remember Me is used)
+~ Dropped support for Joomla! 3.4, 3.5, 3.6, 3.7 as well as PHP 5.4 and 5.5
+~ Protection of all component and plugin folders against direct web access
+~ Always allow entry batching for Security Key, WebAuthn and YubiKey
+# [HIGH] Backup Codes were not selectable during verification
+
+Akeeba LoginGuard 3.0.4
+================================================================================
+~ Disable U2F on unsupported browsers (gh-66).
+# [MEDIUM] Backup Codes displayed twice in the "Select a second step method" page (gh-60).
+
+Akeeba LoginGuard 3.0.3
+================================================================================
++ Working around Joomla! 3.9's Privacy Consent breaking captive login.
+
+Akeeba LoginGuard 3.0.2
+================================================================================
+! Fixed an authenticated security bypass which could be used to disable two step verification, discovered by Ivaylo V.
+
+Akeeba LoginGuard 3.0.1
+================================================================================
++ Users page to see which users have 2SV enabled or not
++ Ability to force-disable TSV for specific user groups
++ gh-49 Forced 2SV for specific user groups
+~ Joomla! 3.9 backend Components menu item compatibility
+~ Allow com_ajax in the captive page (used by cookie banners and similar)
+# [MEDIUM] U2F might fail on Firefox due to a missing semicolon
+
+Akeeba LoginGuard 3.0.0
+================================================================================
+~ Fully refactored to make better use of FOF 3 features
+~ Automatic encryption of TFA settings for GDPR compliance (only affects TFA methods which are newly created or used after installing this version)
+- IP addresses and User Agents are no longer collected for GDPR compliance.
+# [HIGH] The Log Out button results in an invalid token error (h/t Ivaylo V. for the heads up)
+
+Akeeba LoginGuard 2.0.1
+================================================================================
+- Removed unused GeoIP feature
+~ Using the built-in FOF page renderer instead of a custom one
+# [HIGH] TOTP (Google Authenticator) plugin does not display the QR code due to missing JS file
+# [MEDIUM] Leftover records after the user is deleted from Joomla
+
+Akeeba LoginGuard 2.0.0
+================================================================================
++ Rewritten interface using the FOF framework
++ Rewritten interface using our own CSS framework
++ Preliminary Joomla! 4 compatibility (tested against 4.0.0 Alpha 2)
++ Minimum requirements increased to PHP 5.4 or later. Tested up to and including PHP 7.2.
++ Warn the user if either FOF or FEF is not installed.
+# [LOW] PHP Notice when the user does not have any backup codes (it can only happen if you tamper with the database).
+# [HIGH] Google's QR code API was deprecated, breaking the TOTP authentication plugin (gh-38)
+
+Akeeba LoginGuard 1.2.1
+================================================================================
+~ Make the intent of Backup Codes more obvious
+~ Auto-focus the two step verification field
+~ Do not escape the LoginGuard method title (allows for title formatting, e.g. with the backup codes method)
+# [HIGH] The emergency backup codes could be reused
+
+Akeeba LoginGuard 1.2.0
+================================================================================
+~ Improved static media versioning.
+~ Security Key (U2F) plugin: start the U2F validation request immediately, without having to press the button on the screen.
+~ Security Key (U2F) plugin: do not show the confusing Validate button.
+~ Show TFA status in the Profile status page (before editing).
+# [HIGH] Missing file.
+# [LOW] PHP warnings on Joomla! 3.7.0 because Joomla! broke backwards compatibility, again.
+# [MEDIUM] Disabling method batching doesn't display each authentication method separately in the captive page.
+# [HIGH] Backup Codes not shown in the authentication method selection page.
+# [HIGH] Workaround for Joomla! Bug 16147 (https://github.com/joomla/joomla-cms/issues/16147) - Cannot access component after installation when cache is enabled
+
+Akeeba LoginGuard 1.1.1
+================================================================================
+# [HIGH] Missing file
+
+Akeeba LoginGuard 1.1.0
+================================================================================
++ Send authentication code by email
++ Send authentication code by push message (using PushBullet)
++ Send authentication code by mobile text message (using SMSAPI.com)
++ Don't ask for 2SV when the Remember Me plugin logs you back in
+# [LOW] The query disappears from the URL after authenticating the second factor
+# [MEDIUM] You can see the first time setup page after logging out
+# [HIGH] Some browser and server combinations end up with the browser sending double requests to the captive login page making U2F authentication all but impossible.
+
+Akeeba LoginGuard 1.0.0
+================================================================================
++ Two Step Verification for the front- and backend of your Joomla! site.
++ Verification with Google Authenticator and compatible applications.
++ Verification with YubiKey in OTP mode using the Yubico or custom validation servers.
++ Verification with U2F hardware keys on Google Chrome (Linux, Windows, macOS, Android), Firefox (Linux, Windows, macOS) and Opera (Linux, Windows, macOS).
++ Migrate settings from Joomla's Two Factor Authentication and our legacy Akeeba YubiKey Plugins for Joomla! Two Factor Authentication.
++ Optional. Let your users manage their Two Step Verification settings from their user profile edit page.
++ Optional. Automatically show a page where your users can set up Two Step Verification if they haven't done already (displays either the default page or a custom article).
+~ Use the new U2F API 1.1
+~ Consistency of Confirm button appearing below the form, even in the backend.
+~ The plugins now put their data in the media folder, following Joomla's best practices.
+# [MEDIUM] The submit button wasn't shown on the edit method page when using U2F.
+# [MEDIUM] Try to notify when U2F is not supported by the browser instead of silently failing.

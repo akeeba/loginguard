@@ -4,25 +4,24 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a3925e97d482742bc837c0535df9cabe",
+    "content-hash": "30a56ea081680e05631c7b2eb0358f8f",
     "packages": [
         {
             "name": "beberlei/assert",
-            "version": "v3.3.0",
+            "version": "v3.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/beberlei/assert.git",
-                "reference": "5367e3895976b49704ae671f75bc5f0ba1b986ab"
+                "reference": "5e721d7e937ca3ba2cdec1e1adf195f9e5188372"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/beberlei/assert/zipball/5367e3895976b49704ae671f75bc5f0ba1b986ab",
-                "reference": "5367e3895976b49704ae671f75bc5f0ba1b986ab",
+                "url": "https://api.github.com/repos/beberlei/assert/zipball/5e721d7e937ca3ba2cdec1e1adf195f9e5188372",
+                "reference": "5e721d7e937ca3ba2cdec1e1adf195f9e5188372",
                 "shasum": ""
             },
             "require": {
                 "ext-ctype": "*",
-                "ext-intl": "*",
                 "ext-json": "*",
                 "ext-mbstring": "*",
                 "ext-simplexml": "*",
@@ -33,6 +32,9 @@
                 "phpstan/phpstan": "*",
                 "phpunit/phpunit": ">=6.0.0",
                 "yoast/phpunit-polyfills": "^0.1.0"
+            },
+            "suggest": {
+                "ext-intl": "Needed to allow Assertion::count(), Assertion::isCountable(), Assertion::minCount(), and Assertion::maxCount() to operate on ResourceBundles"
             },
             "type": "library",
             "autoload": {
@@ -67,32 +69,32 @@
             ],
             "support": {
                 "issues": "https://github.com/beberlei/assert/issues",
-                "source": "https://github.com/beberlei/assert/tree/v3.3.0"
+                "source": "https://github.com/beberlei/assert/tree/v3.3.1"
             },
-            "time": "2020-11-13T20:02:54+00:00"
+            "time": "2021-04-18T20:11:03+00:00"
         },
         {
             "name": "brick/math",
-            "version": "0.9.2",
+            "version": "0.8.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/brick/math.git",
-                "reference": "dff976c2f3487d42c1db75a3b180e2b9f0e72ce0"
+                "reference": "e6f8e7d04346a95be89580f8c2c22d6c3fa65556"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/brick/math/zipball/dff976c2f3487d42c1db75a3b180e2b9f0e72ce0",
-                "reference": "dff976c2f3487d42c1db75a3b180e2b9f0e72ce0",
+                "url": "https://api.github.com/repos/brick/math/zipball/e6f8e7d04346a95be89580f8c2c22d6c3fa65556",
+                "reference": "e6f8e7d04346a95be89580f8c2c22d6c3fa65556",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": "^7.1 || ^8.0"
+                "php": "^7.1|^8.0"
             },
             "require-dev": {
                 "php-coveralls/php-coveralls": "^2.2",
-                "phpunit/phpunit": "^7.5.15 || ^8.5 || ^9.0",
-                "vimeo/psalm": "4.3.2"
+                "phpunit/phpunit": "^7.5.15|^8.5",
+                "vimeo/psalm": "^3.5"
             },
             "type": "library",
             "autoload": {
@@ -117,7 +119,7 @@
             ],
             "support": {
                 "issues": "https://github.com/brick/math/issues",
-                "source": "https://github.com/brick/math/tree/0.9.2"
+                "source": "https://github.com/brick/math/tree/v0.8"
             },
             "funding": [
                 {
@@ -125,7 +127,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-01-20T22:51:39+00:00"
+            "time": "2020-08-18T23:41:20+00:00"
         },
         {
             "name": "fgrosse/phpasn1",
@@ -204,21 +206,21 @@
         },
         {
             "name": "laminas/laminas-diactoros",
-            "version": "2.5.1",
+            "version": "2.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-diactoros.git",
-                "reference": "53df7b7cd66e0905e6133970a4b90392a7a08075"
+                "reference": "36ef09b73e884135d2059cc498c938e90821bb57"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-diactoros/zipball/53df7b7cd66e0905e6133970a4b90392a7a08075",
-                "reference": "53df7b7cd66e0905e6133970a4b90392a7a08075",
+                "url": "https://api.github.com/repos/laminas/laminas-diactoros/zipball/36ef09b73e884135d2059cc498c938e90821bb57",
+                "reference": "36ef09b73e884135d2059cc498c938e90821bb57",
                 "shasum": ""
             },
             "require": {
                 "laminas/laminas-zendframework-bridge": "^1.0",
-                "php": "^7.3 || ~8.0.0",
+                "php": "^7.1",
                 "psr/http-factory": "^1.0",
                 "psr/http-message": "^1.0"
             },
@@ -237,11 +239,10 @@
                 "ext-dom": "*",
                 "ext-gd": "*",
                 "ext-libxml": "*",
-                "http-interop/http-factory-tests": "^0.8.0",
+                "http-interop/http-factory-tests": "^0.5.0",
                 "laminas/laminas-coding-standard": "~1.0.0",
-                "php-http/psr7-integration-tests": "^1.1",
-                "phpspec/prophecy-phpunit": "^2.0",
-                "phpunit/phpunit": "^9.1"
+                "php-http/psr7-integration-tests": "^1.0",
+                "phpunit/phpunit": "^7.5.18"
             },
             "type": "library",
             "extra": {
@@ -300,30 +301,28 @@
                     "type": "community_bridge"
                 }
             ],
-            "time": "2021-04-13T19:39:11+00:00"
+            "time": "2020-09-03T14:29:41+00:00"
         },
         {
             "name": "laminas/laminas-zendframework-bridge",
-            "version": "1.2.0",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-zendframework-bridge.git",
-                "reference": "6cccbddfcfc742eb02158d6137ca5687d92cee32"
+                "reference": "6ede70583e101030bcace4dcddd648f760ddf642"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-zendframework-bridge/zipball/6cccbddfcfc742eb02158d6137ca5687d92cee32",
-                "reference": "6cccbddfcfc742eb02158d6137ca5687d92cee32",
+                "url": "https://api.github.com/repos/laminas/laminas-zendframework-bridge/zipball/6ede70583e101030bcace4dcddd648f760ddf642",
+                "reference": "6ede70583e101030bcace4dcddd648f760ddf642",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.3 || ^8.0"
+                "php": "^5.6 || ^7.0 || ^8.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5 || ^8.1 || ^9.3",
-                "psalm/plugin-phpunit": "^0.15.1",
-                "squizlabs/php_codesniffer": "^3.5",
-                "vimeo/psalm": "^4.6"
+                "squizlabs/php_codesniffer": "^3.5"
             },
             "type": "library",
             "extra": {
@@ -362,7 +361,7 @@
                     "type": "community_bridge"
                 }
             ],
-            "time": "2021-02-25T21:54:58+00:00"
+            "time": "2020-09-14T14:23:00+00:00"
         },
         {
             "name": "league/uri",
@@ -688,16 +687,16 @@
         },
         {
             "name": "psr/log",
-            "version": "1.1.3",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc"
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11",
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11",
                 "shasum": ""
             },
             "require": {
@@ -721,7 +720,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
+                    "homepage": "https://www.php-fig.org/"
                 }
             ],
             "description": "Common interface for logging libraries",
@@ -732,9 +731,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/1.1.3"
+                "source": "https://github.com/php-fig/log/tree/1.1.4"
             },
-            "time": "2020-03-23T09:12:05+00:00"
+            "time": "2021-05-03T11:20:27+00:00"
         },
         {
             "name": "ramsey/collection",
@@ -972,28 +971,32 @@
         },
         {
             "name": "spomky-labs/cbor-php",
-            "version": "v2.0.1",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Spomky-Labs/cbor-php.git",
-                "reference": "9776578000be884cd7864eeb7c37a4ac92d8c995"
+                "reference": "b8e51e6a13606ab1dd8a64aa295651d8ad57ccd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Spomky-Labs/cbor-php/zipball/9776578000be884cd7864eeb7c37a4ac92d8c995",
-                "reference": "9776578000be884cd7864eeb7c37a4ac92d8c995",
+                "url": "https://api.github.com/repos/Spomky-Labs/cbor-php/zipball/b8e51e6a13606ab1dd8a64aa295651d8ad57ccd1",
+                "reference": "b8e51e6a13606ab1dd8a64aa295651d8ad57ccd1",
                 "shasum": ""
             },
             "require": {
-                "brick/math": "^0.8.15|^0.9.0",
-                "php": ">=7.3"
+                "beberlei/assert": "^3.2",
+                "brick/math": "^0.8.15",
+                "php": ">=7.1",
+                "spomky-labs/base64url": "^1.0|^2.0"
             },
             "require-dev": {
+                "php-coveralls/php-coveralls": "^2.0",
                 "phpstan/phpstan": "^0.12",
                 "phpstan/phpstan-beberlei-assert": "^0.12",
                 "phpstan/phpstan-deprecation-rules": "^0.12",
                 "phpstan/phpstan-phpunit": "^0.12",
-                "phpstan/phpstan-strict-rules": "^0.12"
+                "phpstan/phpstan-strict-rules": "^0.12",
+                "phpunit/phpunit": "^7.5|^8.0"
             },
             "suggest": {
                 "ext-bcmath": "GMP or BCMath extensions will drastically improve the library performance. BCMath extension needed to handle the Big Float and Decimal Fraction Tags",
@@ -1027,7 +1030,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Spomky-Labs/cbor-php/issues",
-                "source": "https://github.com/Spomky-Labs/cbor-php/tree/v2.0.1"
+                "source": "https://github.com/Spomky-Labs/cbor-php/tree/v1.1.1"
             },
             "funding": [
                 {
@@ -1035,7 +1038,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2020-08-31T20:08:03+00:00"
+            "time": "2020-07-12T22:25:05+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -1117,105 +1120,21 @@
             "time": "2021-01-07T16:49:33+00:00"
         },
         {
-            "name": "symfony/polyfill-php80",
-            "version": "v1.22.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/dc3063ba22c2a1fd2f45ed856374d79114998f91",
-                "reference": "dc3063ba22c2a1fd2f45ed856374d79114998f91",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.22-dev"
-                },
-                "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php80\\": ""
-                },
-                "files": [
-                    "bootstrap.php"
-                ],
-                "classmap": [
-                    "Resources/stubs"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ion Bazan",
-                    "email": "ion.bazan@gmail.com"
-                },
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "polyfill",
-                "portable",
-                "shim"
-            ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.22.1"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2021-01-07T16:49:33+00:00"
-        },
-        {
             "name": "symfony/process",
-            "version": "v5.2.4",
+            "version": "v4.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "313a38f09c77fbcdc1d223e57d368cea76a2fd2f"
+                "reference": "f5481b22729d465acb1cea3455fc04ce84b0148b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/313a38f09c77fbcdc1d223e57d368cea76a2fd2f",
-                "reference": "313a38f09c77fbcdc1d223e57d368cea76a2fd2f",
+                "url": "https://api.github.com/repos/symfony/process/zipball/f5481b22729d465acb1cea3455fc04ce84b0148b",
+                "reference": "f5481b22729d465acb1cea3455fc04ce84b0148b",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2.5",
-                "symfony/polyfill-php80": "^1.15"
+                "php": ">=7.1.3"
             },
             "type": "library",
             "autoload": {
@@ -1243,7 +1162,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v5.2.4"
+                "source": "https://github.com/symfony/process/tree/v4.4.22"
             },
             "funding": [
                 {
@@ -1259,7 +1178,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-01-27T10:15:41+00:00"
+            "time": "2021-04-07T16:22:29+00:00"
         },
         {
             "name": "thecodingmachine/safe",
@@ -1402,16 +1321,16 @@
         },
         {
             "name": "web-auth/cose-lib",
-            "version": "v3.3.4",
+            "version": "v3.3.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/web-auth/cose-lib.git",
-                "reference": "eea6fae63ff5c81bf98c115b1be5f38a69682c16"
+                "reference": "ed172d2dc1a6b87b5c644c07c118cd30c1b3819b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/web-auth/cose-lib/zipball/eea6fae63ff5c81bf98c115b1be5f38a69682c16",
-                "reference": "eea6fae63ff5c81bf98c115b1be5f38a69682c16",
+                "url": "https://api.github.com/repos/web-auth/cose-lib/zipball/ed172d2dc1a6b87b5c644c07c118cd30c1b3819b",
+                "reference": "ed172d2dc1a6b87b5c644c07c118cd30c1b3819b",
                 "shasum": ""
             },
             "require": {
@@ -1449,7 +1368,7 @@
                 "RFC8152"
             ],
             "support": {
-                "source": "https://github.com/web-auth/cose-lib/tree/v3.3.4"
+                "source": "https://github.com/web-auth/cose-lib/tree/v3.3.9"
             },
             "funding": [
                 {
@@ -1461,11 +1380,11 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2021-01-09T13:31:01+00:00"
+            "time": "2021-05-02T19:57:09+00:00"
         },
         {
             "name": "web-auth/metadata-service",
-            "version": "v3.3.4",
+            "version": "v3.3.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/web-auth/webauthn-metadata-service.git",
@@ -1518,22 +1437,32 @@
                 "webauthn"
             ],
             "support": {
-                "source": "https://github.com/web-auth/webauthn-metadata-service/tree/v3.3.4"
+                "source": "https://github.com/web-auth/webauthn-metadata-service/tree/v3.3.9"
             },
+            "funding": [
+                {
+                    "url": "https://github.com/Spomky",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/FlorentMorselli",
+                    "type": "patreon"
+                }
+            ],
             "time": "2021-01-09T13:31:01+00:00"
         },
         {
             "name": "web-auth/webauthn-lib",
-            "version": "v3.3.4",
+            "version": "v3.3.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/web-auth/webauthn-lib.git",
-                "reference": "20f99eb615aeeaee1231d91e46c691860c9054f9"
+                "reference": "04b98ee3d39cb79dad68a7c15c297c085bf66bfe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/web-auth/webauthn-lib/zipball/20f99eb615aeeaee1231d91e46c691860c9054f9",
-                "reference": "20f99eb615aeeaee1231d91e46c691860c9054f9",
+                "url": "https://api.github.com/repos/web-auth/webauthn-lib/zipball/04b98ee3d39cb79dad68a7c15c297c085bf66bfe",
+                "reference": "04b98ee3d39cb79dad68a7c15c297c085bf66bfe",
                 "shasum": ""
             },
             "require": {
@@ -1590,7 +1519,7 @@
                 "webauthn"
             ],
             "support": {
-                "source": "https://github.com/web-auth/webauthn-lib/tree/v3.3.4"
+                "source": "https://github.com/web-auth/webauthn-lib/tree/v3.3.9"
             },
             "funding": [
                 {
@@ -1602,7 +1531,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2021-04-16T11:31:10+00:00"
+            "time": "2021-04-19T20:22:20+00:00"
         }
     ],
     "packages-dev": [],
@@ -1619,5 +1548,8 @@
         "ext-mbstring": "*"
     },
     "platform-dev": [],
+    "platform-overrides": {
+        "php": "7.2.0"
+    },
     "plugin-api-version": "2.0.0"
 }

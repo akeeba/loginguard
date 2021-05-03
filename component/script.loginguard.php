@@ -16,7 +16,7 @@ class Pkg_LoginguardInstallerScript
 {
 	protected $packageName = 'pkg_loginguard';
 
-	protected $minimumPHPVersion = '7.3.0';
+	protected $minimumPHPVersion = '7.2.0';
 
 	protected $minimumJoomlaVersion = '3.9.0';
 

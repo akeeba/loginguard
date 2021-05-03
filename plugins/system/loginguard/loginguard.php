@@ -89,7 +89,7 @@ class PlgSystemLoginguard extends CMSPlugin
 		}
 
 		// PHP version check
-		$this->enabled = version_compare(PHP_VERSION, '7.3.0', 'ge');
+		$this->enabled = version_compare(PHP_VERSION, '7.2.0', 'ge');
 
 		$cParams = ComponentHelper::getParams('com_loginguard');
 

@@ -15,7 +15,7 @@ use Joomla\CMS\Router\Route;
 /** @var LoginGuardViewWelcome $this */
 
 $softwareName          = 'Akeeba LoginGuard';
-$minPHPVersion         = '7.3.0';
+$minPHPVersion         = '7.2.0';
 $class_priority_low    = 'alert alert-info';
 $class_priority_medium = 'alert alert-warning';
 $class_priority_high   = 'alert alert-danger';
