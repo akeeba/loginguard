@@ -14,7 +14,7 @@
 		"vendor-dir": "component/backend/vendor"
 	},
 	"require": {
-		"php": ">=7.2 <8.1",
+		"php": ">=7.3 <8.1",
 		"ext-json": "*",
 		"ext-simplexml": "*",
 		"ext-libxml": "*",

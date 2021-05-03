@@ -30,9 +30,10 @@
       <path value="$PROJECT_DIR$/component/backend/vendor/psr/http-client" />
       <path value="$PROJECT_DIR$/component/backend/vendor/symfony/process" />
       <path value="$PROJECT_DIR$/component/backend/vendor/zendframework/zend-diactoros" />
+      <path value="$PROJECT_DIR$/../../master/joomla4" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.3" />
   <component name="PhpUnit">
     <phpunit_settings>
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/component/backend/vendor/autoload.php" />

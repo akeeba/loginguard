@@ -20,7 +20,7 @@ try
 		// Minimum PHP version check
 		define('AKEEBA_COMMON_WRONGPHP', 1);
 
-		$minPHPVersion = '7.2.0';
+		$minPHPVersion = '7.3.0';
 		$softwareName  = 'Akeeba LoginGuard';
 
 		if (!require_once(__DIR__ . '/views/common/tmpl/wrongphp.php'))

@@ -19,7 +19,7 @@ class Com_LoginguardInstallerScript
 
 	protected $componentTitle = 'Akeeba LoginGuard';
 
-	protected $minimumPHPVersion = '7.2.0';
+	protected $minimumPHPVersion = '7.3.0';
 
 	protected $minimumJoomlaVersion = '3.9.0';
 

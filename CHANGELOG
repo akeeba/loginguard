@@ -5,6 +5,7 @@ Akeeba LoginGuard 5.0.0
 ~ Do not ask for TSV if the only active method is backup codes (e.g. after admin has unpublished the previously used plugin)
 + Added support for Joomla Privacy Suite in Joomla 4
 # [HIGH] Backup codes not removed after removing the last TSV method.
+# [HIGH] Composer adds a check for PHP 7.3 or later. Bumping minimum PHP version as a result.
 # [MEDIUM] Joomla 4: admin 2SV takes you back to the frontend instead of the backend Control Panel page.
 # [LOW] Remember me cookie not removed when logging out
 
