@@ -214,7 +214,7 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 	{
 		$this->assertLoggedInUser();
 
-		$this->checkToken();
+		$this->checkToken($this->input->getMethod());
 
 		// Make sure I am allowed to edit the specified user
 		$user_id = $this->input->getInt('user_id', null);
