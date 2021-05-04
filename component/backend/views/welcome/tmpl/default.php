@@ -136,7 +136,7 @@ $label = version_compare(JVERSION, '3.999.999', 'le') ? 'label label-' : 'badge 
 				<span class="icon icon-lock"></span>
 				<?= Text::_('COM_LOGINGUARD_BTN_MANAGE_SELF'); ?>
 			</a>
-			<a class="btn btn-default btn-outline-secondary" href="<?= Route::_('index.php?option=com_users') ?>">
+			<a class="btn btn-default btn-outline-secondary" href="<?= Route::_('index.php?option=com_loginguard&view=users') ?>">
 				<span class="icon icon-users"></span>
 				<?= Text::_('COM_LOGINGUARD_BTN_MANAGE_OTHERS'); ?>
 			</a>
