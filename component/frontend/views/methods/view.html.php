@@ -15,6 +15,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\MVC\View\HtmlView as HtmlViewAlias;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\User\User;
 
@@ -179,6 +180,8 @@ class LoginGuardViewMethods extends HtmlViewAlias
 		{
 			ToolbarHelper::title(JText::_('COM_LOGINGUARD') . " <small>" . JText::_('COM_LOGINGUARD_HEAD_LIST_PAGE') . "</small>", 'loginguard');
 			$this->title = '';
+
+			ToolbarHelper::back('JTOOLBAR_BACK', Route::_('index.php?option=com_loginguard'));
 		}
 
 		// Display the view
