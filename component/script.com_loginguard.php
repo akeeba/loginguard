@@ -26,7 +26,13 @@ class Com_LoginguardInstallerScript
 	protected $maximumJoomlaVersion = '4.0.999';
 
 	protected $removeFiles = [
-		'files'   => [],
+		'files'   => [
+			// Minified files from older versions
+			'media/com_loginguard/css/backend.min.css',
+			'media/com_loginguard/css/captive.min.css',
+			'media/com_loginguard/css/methods.min.css',
+			'media/com_loginguard/css/dark.min.css',
+		],
 		'folders' => [],
 	];
 

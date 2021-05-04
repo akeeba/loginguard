@@ -18,7 +18,6 @@
 	<fileset dir="${dirs.component}" id="component">
 		<include name="backend/**" />
 		<include name="frontend/**" />
-		<include name="language/**" />
 		<include name="media/**" />
 
 		<include name="*" />
