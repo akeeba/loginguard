@@ -167,7 +167,7 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 	{
 		$this->assertLoggedInUser();
 
-		$this->checkToken();
+		$this->checkToken('get');
 
 		// Make sure I am allowed to edit the specified user
 		$user_id = $this->input->getInt('user_id', null);
@@ -180,7 +180,7 @@ class LoginGuardControllerMethod extends BaseControllerAlias
 			require_once JPATH_BASE . '/components/com_loginguard/models/backupcodes.php';
 		}
 
-		$model = $this->getModel('LoginGuardModelBackupcodes');
+		$model = $this->getModel('Backupcodes', 'LoginGuardModel');
 		$model->regenerateBackupCodes($user);
 
 		$backupCodesRecord = $model->getBackupCodesRecord($user);

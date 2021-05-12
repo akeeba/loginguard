@@ -60,7 +60,7 @@ if ($this->record->method != 'backupcodes')
 	<?= Text::_('COM_LOGINGUARD_LBL_BACKUPCODES_RESET_INFO'); ?>
 </p>
 
-<a class="btn btn-danger" href="<?= Route::_('index.php?option=com_loginguard&task=method.regenbackupcodes&user_id=' . $this->user->id . (empty($this->returnURL) ? '' : '&returnurl=' . $this->returnURL)) ?>">
+<a class="btn btn-danger" href="<?= Route::_(sprintf("index.php?option=com_loginguard&task=method.regenbackupcodes&user_id=%s&%s=1%s", $this->user->id, JSession::getFormToken(), empty($this->returnURL) ? '' : '&returnurl=' . $this->returnURL)) ?>">
 	<span class="icon icon-refresh"></span>
 	<?= Text::_('COM_LOGINGUARD_LBL_BACKUPCODES_RESET'); ?>
 </a>
