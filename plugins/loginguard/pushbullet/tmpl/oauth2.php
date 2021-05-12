@@ -19,7 +19,7 @@ $redirectURL = urlencode($baseURL . 'index.php?option=com_loginguard&view=Callba
 $oauth2URL   = "https://www.pushbullet.com/authorize?client_id={$this->clientId}&redirect_uri=$redirectURL&response_type=code&state=$backend"
 
 ?>
-<div id="loginguard-pushbullet-controls">
+<div id="loginguard-pushbullet-controls" style="margin: 0.5em 0">
 	<a class="btn btn-primary btn-lg btn-big" href="<?= $oauth2URL ?>">
 		<span class="icon icon-lock"></span>
 		<?= Text::_('PLG_LOGINGUARD_PUSHBULLET_LBL_OAUTH2BUTTON'); ?>

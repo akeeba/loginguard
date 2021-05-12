@@ -11,7 +11,7 @@ defined('_JEXEC') || die;
 use Joomla\CMS\Language\Text;
 
 ?>
-<div id="loginguard-webauthn-missing">
+<div id="loginguard-webauthn-missing" style="margin: 0.5em 0">
 	<div class="alert alert-danger">
 		<h4>
 			<?= Text::_('PLG_LOGINGUARD_WEBAUTHN_ERR_NOTAVAILABLE_HEAD'); ?>

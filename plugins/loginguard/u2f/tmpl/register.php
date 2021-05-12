@@ -14,7 +14,7 @@ defined('_JEXEC') || die;
 include PluginHelper::getLayoutPath('loginguard', 'u2f', 'error');
 
 ?>
-<div id="loginguard-u2f-controls">
+<div id="loginguard-u2f-controls" style="margin: 0.5em 0">
     <input class="form-control" id="loginguard-method-code" name="code" value="" placeholder="" type="hidden">
 
 	<a class="btn btn-primary btn-large btn-big loginguard_u2f_setup">

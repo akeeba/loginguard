@@ -15,7 +15,7 @@ $layoutPath = PluginHelper::getLayoutPath('loginguard', 'webauthn', 'error');
 include $layoutPath;
 
 ?>
-<div id="loginguard-webauthn-controls">
+<div id="loginguard-webauthn-controls" style="margin: 0.5em 0">
     <input name="code" value="" id="loginGuardCode" class="form-control input-lg" type="hidden">
 
 	<a class="btn btn-primary btn-lg btn-big" id="plg_loginguard_webauthn_validate_button">

@@ -29,7 +29,7 @@ JS;
 Factory::getDocument()->addScriptDeclaration($js);
 
 ?>
-<div id="loginguard-u2f-missing">
+<div id="loginguard-u2f-missing" style="margin: 0.5em 0">
 	<div class="alert alert-danger">
 		<h4>
 			<?= Text::_('PLG_LOGINGUARD_U2F_ERR_NOTAVAILABLE_HEAD'); ?>

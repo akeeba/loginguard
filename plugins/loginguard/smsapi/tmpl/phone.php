@@ -78,7 +78,7 @@ JS;
 
 Factory::getApplication()->getDocument()->addScriptDeclaration($js);
 ?>
-<div class="akeeba-form--horizontal" id="loginGuardSMSAPIForm">
+<div class="akeeba-form--horizontal" id="loginGuardSMSAPIForm" style="margin: 0.5em 0">
     <div class="control-group form-group">
         <label for="loginGuardSMSAPIPhone" class="form-label control-label">
 			<?= Text::_('PLG_LOGINGUARD_SMSAPI_LBL_PHONE') ?>

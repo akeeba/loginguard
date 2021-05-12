@@ -15,7 +15,7 @@ $layoutPath = PluginHelper::getLayoutPath('loginguard', 'u2f', 'error');
 include $layoutPath;
 
 ?>
-<div id="loginguard-u2f-controls">
+<div id="loginguard-u2f-controls" style="margin: 0.5em 0">
     <input name="code" value="" id="loginGuardCode" class="form-control input-lg" type="hidden">
 
 	<a class="btn btn-primary btn-lg btn-big"
