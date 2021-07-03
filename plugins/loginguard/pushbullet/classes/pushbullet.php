@@ -424,7 +424,11 @@ class LoginGuardPushbulletApi
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 
-		@curl_setopt($curl, CURLOPT_CAINFO, JPATH_LIBRARIES . '/src/Http/Transport/cacert.pem');
+		$caCertPath = class_exists('\\Composer\\CaBundle\\CaBundle')
+			? \Composer\CaBundle\CaBundle::getBundledCaBundlePath()
+			: JPATH_LIBRARIES . '/src/Http/Transport/cacert.pem';
+
+		@curl_setopt($curl, CURLOPT_CAINFO, $caCertPath);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
 

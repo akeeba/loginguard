@@ -3,6 +3,7 @@ Akeeba LoginGuard 5.0.0
 ================================================================================
 ~ Rewritten with core Joomla MVC
 ~ Do not ask for TSV if the only active method is backup codes (e.g. after admin has unpublished the previously used plugin)
+~ Joomla changed the location of the cacert.pem file
 + Added support for Joomla Privacy Suite in Joomla 4
 # [HIGH] Backup codes not removed after removing the last TSV method.
 # [HIGH] Would not work on PHP 7.2 because Composer adds a PHP version check.
