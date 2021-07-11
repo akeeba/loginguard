@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `#__loginguard_tfa`
     `options`    LONGTEXT        null,
     `created_on` DATETIME        NULL,
     `last_used`  DATETIME        NULL,
-    INDEX idx_user_id (`user_id`(100))
+    INDEX `#__loginguard_tfa_user` (`user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   DEFAULT COLLATE = utf8mb4_unicode_ci;
