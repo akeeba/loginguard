@@ -77,12 +77,6 @@ require_once JPATH_LIBRARIES . '/fof40/Cli/Application.php';
 // Undo the temporary change for the FOF CLI boilerplate code
 chdir($originalDirectory);
 
-// Load FOF 3
-if (!defined('FOF40_INCLUDED') && !@include_once(JPATH_LIBRARIES . '/fof40/include.php'))
-{
-	throw new RuntimeException('FOF 4.0 is not installed', 500);
-}
-
 // Load Akeeba LoginGuard's autoloader through FOF 3
 $container = FOF40\Container\Container::getInstance('com_loginguard');
 

@@ -24,6 +24,4 @@
 		<language tag="en-GB">en-GB/en-GB.plg_actionlog_loginguard.ini</language>
 		<language tag="en-GB">en-GB/en-GB.plg_actionlog_loginguard.sys.ini</language>
 	</languages>
-
-	<scriptfile>script.php</scriptfile>
 </extension>
