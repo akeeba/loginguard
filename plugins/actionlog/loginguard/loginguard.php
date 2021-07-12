@@ -11,12 +11,18 @@ use Joomla\CMS\User\User;
 
 defined('_JEXEC') || die();
 
+if (!class_exists('ActionLogPlugin', true))
+{
+	JLoader::register('ActionLogPlugin', JPATH_ADMINISTRATOR . '/components/com_actionlogs/libraries/actionlogplugin.php');
+	JLoader::register('ActionlogsHelper', JPATH_ADMINISTRATOR . '/components/com_actionlogs/helpers/actionlogs.php');
+}
+
 /**
  * LoginGuard integration with Joomla's User Actions Log
  *
  * @since  3.1.2
  */
-class plgActionlogLoginguard extends ActionLogPlugin
+class PlgActionlogLoginguard extends ActionLogPlugin
 {
 	/**
 	 * The Joomla application object.
